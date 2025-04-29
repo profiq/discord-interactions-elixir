@@ -13,16 +13,18 @@ defmodule DiscordInteractions.Plug.HandleRequest do
 
     conn
     |> resp(200, resp_body)
+    |> put_resp_header("content-type", "application/json")
     |> send_resp()
     |> halt()
   end
 
   def call(conn, _opts) do
-    response = apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params])
-    resp_body = Jason.encode_to_iodata!(response)
+    resp_body =
+      Jason.encode_to_iodata!(apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params]))
 
     conn
     |> resp(200, resp_body)
+    |> put_resp_header("content-type", "application/json")
     |> send_resp()
     |> halt()
   end
