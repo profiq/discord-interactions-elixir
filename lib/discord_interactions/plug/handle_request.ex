@@ -17,8 +17,8 @@ defmodule DiscordInteractions.Plug.HandleRequest do
     |> halt()
   end
 
-  def call(conn, handler) do
-    response = apply(handler, :handle, [conn.body_params])
+  def call(conn, _opts) do
+    response = apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params])
     resp_body = Jason.encode_to_iodata!(response)
 
     conn
