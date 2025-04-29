@@ -10,6 +10,6 @@ defmodule DiscordInteractions.Plug do
   plug(DiscordInteractions.Plug.ValidateRequest)
   plug(DiscordInteractions.Plug.HandleRequest)
 
-  defp ensure_post(%{method: "POST"} = conn, _opts), do: IO.inspect(conn)
+  defp ensure_post(%{method: "POST"} = conn, _opts), do: conn
   defp ensure_post(conn, _opts), do: error(conn, :method_not_allowed)
 end
