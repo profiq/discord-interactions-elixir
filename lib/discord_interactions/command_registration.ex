@@ -15,6 +15,7 @@ defmodule DiscordInteractions.CommandRegistration do
          client <- API.new(token: bot_token, application_id: application_id),
          {:response, {:ok, _}} <- {:response, API.bulk_overwrite_global_commands(client, commands)}
     do
+      Logger.info("Successfully registered Discord commands")
       :ok
     else
       {:bot_token, _} ->
