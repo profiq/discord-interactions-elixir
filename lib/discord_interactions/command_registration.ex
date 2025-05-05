@@ -9,11 +9,19 @@ defmodule DiscordInteractions.CommandRegistration do
   end
 
   def register_commands(handler) do
-    with commands <- apply(handler, :init, []),
-         {:bot_token, {:ok, bot_token}} <- {:bot_token, Application.fetch_env(:discord_interactions, :bot_token)},
+    # Only register global commands at this time
+    handler
+    |> apply(:init, [])
+    |> Enum.filter(&(&1.guilds == []))
+    |> Enum.map(& &1.definition)
+    |> register_global_commands()
+  end
+
+  def register_global_commands(commands) do
+    with {:bot_token, {:ok, bot_token}} <- {:bot_token, Application.fetch_env(:discord_interactions, :bot_token)},
          {:application_id, {:ok, application_id}} <- {:application_id, Application.fetch_env(:discord_interactions, :application_id)},
          client <- API.new(token: bot_token, application_id: application_id),
-         {:response, {:ok, _}} <- {:response, API.bulk_overwrite_global_commands(client, commands)}
+         {:response, {:ok, _response}} <- {:response, API.bulk_overwrite_global_commands(client, commands)}
     do
       Logger.info("Successfully registered Discord commands")
       :ok
