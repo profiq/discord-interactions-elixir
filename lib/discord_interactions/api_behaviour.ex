@@ -10,6 +10,12 @@ defmodule DiscordInteractions.APIBehaviour do
   @type command :: map()
   @type commands :: list(command())
   @type permissions :: map()
+  @type interaction_response :: map()
+  @type interaction_id :: String.t()
+  @type interaction_token :: String.t()
+  @type interaction_callback_response :: map()
+  @type message :: map()
+  @type message_id :: String.t()
   @type error :: {:error, any()}
 
   # Global commands
@@ -54,4 +60,29 @@ defmodule DiscordInteractions.APIBehaviour do
 
   @callback batch_update_command_permissions(client(), guild_id(), list(permissions())) ::
               {:ok, list(permissions())} | error()
+
+  # Interaction responses
+  @callback create_interaction_response(client(), interaction_id(), interaction_token(), interaction_response()) ::
+              :ok | {:ok, interaction_callback_response()} | error()
+
+  @callback get_original_interaction_response(client(), interaction_token()) ::
+              {:ok, message()} | error()
+
+  @callback edit_original_interaction_response(client(), interaction_token(), message()) ::
+              {:ok, message()} | error()
+
+  @callback delete_original_interaction_response(client(), interaction_token()) ::
+              :ok | error()
+
+  @callback create_followup_message(client(), interaction_token(), message()) ::
+              {:ok, message()} | error()
+
+  @callback get_followup_message(client(), interaction_token(), message_id()) ::
+              {:ok, message()} | error()
+
+  @callback edit_followup_message(client(), interaction_token(), message_id(), message()) ::
+              {:ok, message()} | error()
+
+  @callback delete_followup_message(client(), interaction_token(), message_id()) ::
+              :ok | error()
 end

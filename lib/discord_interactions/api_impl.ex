@@ -179,4 +179,79 @@ defmodule DiscordInteractions.APIImpl do
       error -> error
     end
   end
+
+  # Interaction Responses
+
+  @impl true
+  def create_interaction_response(%{client: client}, interaction_id, interaction_token, response) do
+    case post(client, "/interactions/#{interaction_id}/#{interaction_token}/callback", response) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def get_original_interaction_response(%{client: client, application_id: application_id}, interaction_token) do
+    case get(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def edit_original_interaction_response(%{client: client, application_id: application_id}, interaction_token, message) do
+    case patch(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original", message) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def delete_original_interaction_response(%{client: client, application_id: application_id}, interaction_token) do
+    case delete(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original") do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def create_followup_message(%{client: client, application_id: application_id}, interaction_token, message) do
+    case post(client, "/webhooks/#{application_id}/#{interaction_token}", message) do
+      {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def get_followup_message(%{client: client, application_id: application_id}, interaction_token, message_id) do
+    case get(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def edit_followup_message(%{client: client, application_id: application_id}, interaction_token, message_id, message) do
+    case patch(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}", message) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
+
+  @impl true
+  def delete_followup_message(%{client: client, application_id: application_id}, interaction_token, message_id) do
+    case delete(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}") do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
+  end
 end

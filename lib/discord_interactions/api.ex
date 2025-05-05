@@ -221,4 +221,106 @@ defmodule DiscordInteractions.API do
   def batch_update_command_permissions(client, guild_id, permissions) do
     @api_module.batch_update_command_permissions(client, guild_id, permissions)
   end
+
+  # Interaction Responses
+
+  @doc """
+  Creates an initial response to an interaction.
+
+  ## Examples
+
+      iex> response = %{type: 4, data: %{content: "Hello!"}}
+      iex> :ok = DiscordInteractions.Client.create_interaction_response(client, "INTERACTION_ID", "INTERACTION_TOKEN", response)
+  """
+  @impl true
+  def create_interaction_response(client, interaction_id, interaction_token, response) do
+    @api_module.create_interaction_response(client, interaction_id, interaction_token, response)
+  end
+
+  @doc """
+  Gets the initial response to an interaction.
+
+  ## Examples
+
+      iex> {:ok, message} = DiscordInteractions.Client.get_original_interaction_response(client, "INTERACTION_TOKEN")
+  """
+  @impl true
+  def get_original_interaction_response(client, interaction_token) do
+    @api_module.get_original_interaction_response(client, interaction_token)
+  end
+
+  @doc """
+  Edits the initial response to an interaction.
+
+  ## Examples
+
+      iex> message = %{content: "Updated content"}
+      iex> {:ok, updated} = DiscordInteractions.Client.edit_original_interaction_response(client, "INTERACTION_TOKEN", message)
+  """
+  @impl true
+  def edit_original_interaction_response(client, interaction_token, message) do
+    @api_module.edit_original_interaction_response(client, interaction_token, message)
+  end
+
+  @doc """
+  Deletes the initial response to an interaction.
+
+  ## Examples
+
+      iex> :ok = DiscordInteractions.Client.delete_original_interaction_response(client, "INTERACTION_TOKEN")
+  """
+  @impl true
+  def delete_original_interaction_response(client, interaction_token) do
+    @api_module.delete_original_interaction_response(client, interaction_token)
+  end
+
+  @doc """
+  Creates a followup message for an interaction.
+
+  ## Examples
+
+      iex> message = %{content: "Followup message"}
+      iex> {:ok, created} = DiscordInteractions.Client.create_followup_message(client, "INTERACTION_TOKEN", message)
+  """
+  @impl true
+  def create_followup_message(client, interaction_token, message) do
+    @api_module.create_followup_message(client, interaction_token, message)
+  end
+
+  @doc """
+  Gets a followup message for an interaction.
+
+  ## Examples
+
+      iex> {:ok, message} = DiscordInteractions.Client.get_followup_message(client, "INTERACTION_TOKEN", "MESSAGE_ID")
+  """
+  @impl true
+  def get_followup_message(client, interaction_token, message_id) do
+    @api_module.get_followup_message(client, interaction_token, message_id)
+  end
+
+  @doc """
+  Edits a followup message for an interaction.
+
+  ## Examples
+
+      iex> message = %{content: "Updated followup"}
+      iex> {:ok, updated} = DiscordInteractions.Client.edit_followup_message(client, "INTERACTION_TOKEN", "MESSAGE_ID", message)
+  """
+  @impl true
+  def edit_followup_message(client, interaction_token, message_id, message) do
+    @api_module.edit_followup_message(client, interaction_token, message_id, message)
+  end
+
+  @doc """
+  Deletes a followup message for an interaction.
+
+  ## Examples
+
+      iex> :ok = DiscordInteractions.Client.delete_followup_message(client, "INTERACTION_TOKEN", "MESSAGE_ID")
+  """
+  @impl true
+  def delete_followup_message(client, interaction_token, message_id) do
+    @api_module.delete_followup_message(client, interaction_token, message_id)
+  end
 end
