@@ -1,179 +1,224 @@
 defmodule DiscordInteractions.API do
-  @moduledoc """
-  Discord API client for managing application commands and their permissions.
-  """
-
   @behaviour DiscordInteractions.APIBehaviour
 
-  use Tesla
+  @api_module Application.compile_env(:discord_interactions, :api_impl, DiscordInteractions.APIImpl)
 
-  @base_url "https://discord.com/api/v10"
-  @middleware [
-    Tesla.Middleware.JSON,
-    {Tesla.Middleware.Headers, [{"content-type", "application/json"}]}
-  ]
-  @adapter Tesla.Adapter.Httpc
+  @doc """
+  Creates a new API client with the given token.
 
+  ## Examples
+
+      iex> client = DiscordInteractions.Client.new(application_id: "APP_ID", token: "BOT_TOKEN")
+  """
   @impl true
-  def new(opts) do
-    middleware =
-      [
-        {Tesla.Middleware.BaseUrl, @base_url <> "/applications/#{opts[:application_id]}"},
-        {Tesla.Middleware.Headers, [{"authorization", "Bot #{opts[:token]}"}]}
-      ] ++ @middleware
-
-    adapter = opts[:adapter] || @adapter
-
-    Tesla.client(middleware, adapter)
-  end
+  def new(opts), do: @api_module.new(opts)
 
   # Global Commands
 
+  @doc """
+  Gets all global commands for the application.
+
+  ## Examples
+
+      iex> {:ok, commands} = DiscordInteractions.Client.get_global_commands(client)
+  """
   @impl true
   def get_global_commands(client) do
-    case get(client, "/commands") do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.get_global_commands(client)
   end
 
+  @doc """
+  Gets a specific global command by ID.
+
+  ## Examples
+
+      iex> {:ok, command} = DiscordInteractions.Client.get_global_command(client, "CMD_ID")
+  """
   @impl true
   def get_global_command(client, command_id) do
-    case get(client, "/commands/#{command_id}") do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.get_global_command(client, command_id)
   end
 
+  @doc """
+  Creates a new global command.
+
+  ## Examples
+
+      iex> command = %{name: "test", description: "A test command", type: 1}
+      iex> {:ok, created} = DiscordInteractions.Client.create_global_command(client, command)
+  """
   @impl true
   def create_global_command(client, command) do
-    case post(client, "/commands", command) do
-      {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.create_global_command(client, command)
   end
 
+  @doc """
+  Updates an existing global command.
+
+  ## Examples
+
+      iex> command = %{name: "test", description: "Updated description", type: 1}
+      iex> {:ok, updated} = DiscordInteractions.Client.update_global_command(client, "CMD_ID", command)
+  """
   @impl true
   def update_global_command(client, command_id, command) do
-    case patch(client, "/commands/#{command_id}", command) do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.update_global_command(client, command_id, command)
   end
 
+  @doc """
+  Deletes a global command.
+
+  ## Examples
+
+      iex> :ok = DiscordInteractions.Client.delete_global_command(client, "CMD_ID")
+  """
   @impl true
   def delete_global_command(client, command_id) do
-    case delete(client, "/commands/#{command_id}") do
-      {:ok, %{status: 204}} -> :ok
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.delete_global_command(client, command_id)
   end
 
+  @doc """
+  Bulk overwrites all global commands.
+
+  ## Examples
+
+      iex> commands = [%{name: "cmd1", description: "Command 1"}, %{name: "cmd2", description: "Command 2"}]
+      iex> {:ok, updated} = DiscordInteractions.Client.bulk_overwrite_global_commands(client, commands)
+  """
   @impl true
   def bulk_overwrite_global_commands(client, commands) do
-    case put(client, "/commands", commands) do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.bulk_overwrite_global_commands(client, commands)
   end
 
   # Guild Commands
 
+  @doc """
+  Gets all commands for a specific guild.
+
+  ## Examples
+
+      iex> {:ok, commands} = DiscordInteractions.Client.get_guild_commands(client, "GUILD_ID")
+  """
   @impl true
   def get_guild_commands(client, guild_id) do
-    case get(client, "/guilds/#{guild_id}/commands") do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.get_guild_commands(client, guild_id)
   end
 
+  @doc """
+  Gets a specific command in a guild.
+
+  ## Examples
+
+      iex> {:ok, command} = DiscordInteractions.Client.get_guild_command(client, "GUILD_ID", "CMD_ID")
+  """
   @impl true
   def get_guild_command(client, guild_id, command_id) do
-    case get(client, "/guilds/#{guild_id}/commands/#{command_id}") do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.get_guild_command(client, guild_id, command_id)
   end
 
+  @doc """
+  Creates a new command in a guild.
+
+  ## Examples
+
+      iex> command = %{name: "test", description: "A test command", type: 1}
+      iex> {:ok, created} = DiscordInteractions.Client.create_guild_command(client, "GUILD_ID", command)
+  """
   @impl true
   def create_guild_command(client, guild_id, command) do
-    case post(client, "/guilds/#{guild_id}/commands", command) do
-      {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.create_guild_command(client, guild_id, command)
   end
 
+  @doc """
+  Updates an existing command in a guild.
+
+  ## Examples
+
+      iex> command = %{name: "test", description: "Updated description", type: 1}
+      iex> {:ok, updated} = DiscordInteractions.Client.update_guild_command(client, "GUILD_ID", "CMD_ID", command)
+  """
   @impl true
   def update_guild_command(client, guild_id, command_id, command) do
-    case patch(client, "/guilds/#{guild_id}/commands/#{command_id}", command) do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.update_guild_command(client, guild_id, command_id, command)
   end
 
+  @doc """
+  Deletes a command from a guild.
+
+  ## Examples
+
+      iex> :ok = DiscordInteractions.Client.delete_guild_command(client, "GUILD_ID", "CMD_ID")
+  """
   @impl true
   def delete_guild_command(client, guild_id, command_id) do
-    case delete(client, "/guilds/#{guild_id}/commands/#{command_id}") do
-      {:ok, %{status: 204}} -> :ok
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.delete_guild_command(client, guild_id, command_id)
   end
 
+  @doc """
+  Bulk overwrites all commands in a guild.
+
+  ## Examples
+
+      iex> commands = [%{name: "cmd1", description: "Command 1"}, %{name: "cmd2", description: "Command 2"}]
+      iex> {:ok, updated} = DiscordInteractions.Client.bulk_overwrite_guild_commands(client, "GUILD_ID", commands)
+  """
   @impl true
   def bulk_overwrite_guild_commands(client, guild_id, commands) do
-    case put(client, "/guilds/#{guild_id}/commands", commands) do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.bulk_overwrite_guild_commands(client, guild_id, commands)
   end
 
   # Command Permissions
 
+  @doc """
+  Gets permissions for all commands in a guild.
+
+  ## Examples
+
+      iex> {:ok, permissions} = DiscordInteractions.Client.get_guild_command_permissions(client, "GUILD_ID")
+  """
   @impl true
   def get_guild_command_permissions(client, guild_id) do
-    case get(client, "/guilds/#{guild_id}/commands/permissions") do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.get_guild_command_permissions(client, guild_id)
   end
 
+  @doc """
+  Gets permissions for a specific command in a guild.
+
+  ## Examples
+
+      iex> {:ok, permissions} = DiscordInteractions.Client.get_command_permissions(client, "GUILD_ID", "CMD_ID")
+  """
   @impl true
   def get_command_permissions(client, guild_id, command_id) do
-    case get(client, "/guilds/#{guild_id}/commands/#{command_id}/permissions") do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.get_command_permissions(client, guild_id, command_id)
   end
 
+  @doc """
+  Updates permissions for a specific command in a guild.
+
+  ## Examples
+
+      iex> permissions = %{permissions: [%{id: "ROLE_ID", type: 1, permission: true}]}
+      iex> {:ok, updated} = DiscordInteractions.Client.update_command_permissions(client, "GUILD_ID", "CMD_ID", permissions)
+  """
   @impl true
   def update_command_permissions(client, guild_id, command_id, permissions) do
-    case put(client, "/guilds/#{guild_id}/commands/#{command_id}/permissions", permissions) do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.update_command_permissions(client, guild_id, command_id, permissions)
   end
 
+  @doc """
+  Batch updates permissions for multiple commands in a guild.
+
+  ## Examples
+
+      iex> permissions = [
+      ...>   %{id: "CMD_ID_1", permissions: [%{id: "ROLE_ID", type: 1, permission: true}]},
+      ...>   %{id: "CMD_ID_2", permissions: [%{id: "USER_ID", type: 2, permission: true}]}
+      ...> ]
+      iex> {:ok, updated} = DiscordInteractions.Client.batch_update_command_permissions(client, "GUILD_ID", permissions)
+  """
   @impl true
   def batch_update_command_permissions(client, guild_id, permissions) do
-    case put(client, "/guilds/#{guild_id}/commands/permissions", permissions) do
-      {:ok, %{status: 200, body: body}} -> {:ok, body}
-      {:ok, response} -> {:error, response}
-      error -> error
-    end
+    @api_module.batch_update_command_permissions(client, guild_id, permissions)
   end
 end
