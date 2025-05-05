@@ -3,30 +3,29 @@ defmodule DiscordInteractions do
   Documentation for `DiscordInteractions`.
   """
 
-  defmacro discord_commands(do: block) do
+  defmacro interactions(do: block) do
     quote do
       def init do
-        var!(commands) = []
+        var!(interactions) = %{
+          commands: [],
+          message_component_handler: nil,
+          modal_submit_handler: nil
+        }
         unquote(block)
-        var!(commands)
+        var!(interactions)
       end
     end
   end
 
-  defmacro command(_opts \\ [], do: block) do
+  defmacro application_command(_opts \\ [], do: block) do
     quote do
       var!(command) = %{
         definition: %{},
-        handlers: %{
-          application_command: nil,
-          message_component: nil,
-          application_command_autocomplete: nil,
-          modal_submit: nil
-        },
+        handler: nil,
         guilds: []
       }
       unquote(block)
-      var!(commands) = [var!(command) | var!(commands)]
+      var!(interactions) = %{var!(interactions) | commands: [var!(command) | var!(interactions).commands]}
     end
   end
 
@@ -56,25 +55,19 @@ defmodule DiscordInteractions do
 
   defmacro handler(handler) do
     quote do
-      var!(command) = %{var!(command) | handlers: %{var!(command).handlers | application_command: unquote(handler)}}
+      var!(command) = %{var!(command) | handler: unquote(handler)}
     end
   end
 
-  defmacro component_handler(handler) do
+  defmacro message_component_handler(handler) do
     quote do
-      var!(command) = %{var!(command) | handlers: %{var!(command).handlers | message_component: unquote(handler)}}
-    end
-  end
-
-  defmacro autocomplete_handler(handler) do
-    quote do
-      var!(command) = %{var!(command) | handlers: %{var!(command).handlers | application_command_autocomplete: unquote(handler)}}
+      var!(interactions) = %{var!(interactions) | message_component_handler: unquote(handler)}
     end
   end
 
   defmacro modal_submit_handler(handler) do
     quote do
-      var!(command) = %{var!(command) | handlers: %{var!(command).handlers | modal_submit: unquote(handler)}}
+      var!(interactions) = %{var!(interactions) | modal_submit_handler: unquote(handler)}
     end
   end
 end

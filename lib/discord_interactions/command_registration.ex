@@ -12,6 +12,7 @@ defmodule DiscordInteractions.CommandRegistration do
     # Only register global commands at this time
     handler
     |> apply(:init, [])
+    |> Map.get(:commands)
     |> Enum.filter(&(&1.guilds == []))
     |> Enum.map(& &1.definition)
     |> register_global_commands()
