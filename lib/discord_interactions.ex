@@ -7,7 +7,8 @@ defmodule DiscordInteractions do
     quote do
       def init do
         var!(interactions) = %{
-          commands: [],
+          global_commands: %{},
+          guild_commands: %{},
           message_component_handler: nil,
           modal_submit_handler: nil
         }
@@ -17,15 +18,29 @@ defmodule DiscordInteractions do
     end
   end
 
-  defmacro application_command(_opts \\ [], do: block) do
+  defmacro application_command(name, _opts \\ [], do: block) do
     quote do
       var!(command) = %{
-        definition: %{},
+        definition: %{name: unquote(name)},
         handler: nil,
         guilds: []
       }
+
       unquote(block)
-      var!(interactions) = %{var!(interactions) | commands: [var!(command) | var!(interactions).commands]}
+
+      var!(interactions) =
+        if var!(command).guilds == [] do
+          %{var!(interactions) | global_commands: Map.put(var!(interactions).global_commands, unquote(name), var!(command))}
+        else
+          %{
+            var!(interactions) |
+            guild_commands:
+              var!(command).guilds
+              |> Enum.reduce(%{}, fn guild, acc -> Map.put(acc, {guild, unquote(name)}, var!(command)) end)
+              |> Map.merge(var!(interactions).guild_commands)
+          }
+        end
+
     end
   end
 
@@ -68,6 +83,26 @@ defmodule DiscordInteractions do
   defmacro modal_submit_handler(handler) do
     quote do
       var!(interactions) = %{var!(interactions) | modal_submit_handler: unquote(handler)}
+    end
+  end
+
+  defmacro __using__(_) do
+    quote do
+      @behaviour DiscordInteractions.CommandHandler
+
+      import DiscordInteractions
+
+      def handle(%{"type" => 2, "data" => %{"name" => command_name}, "guild_id" => guild_id} = itx) do
+        # Handle application command
+        case init() do
+          %{guild_commands: %{{^guild_id, ^command_name} => %{handler: handler}}} ->
+            handler.(itx)
+          %{global_commands: %{^command_name => %{handler: handler}}} ->
+            handler.(itx)
+          _ ->
+            :error
+        end
+      end
     end
   end
 end
