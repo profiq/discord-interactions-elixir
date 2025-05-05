@@ -18,20 +18,23 @@ defmodule DiscordInteractions.APIImpl do
   def new(opts) do
     middleware =
       [
-        {Tesla.Middleware.BaseUrl, @base_url <> "/applications/#{opts[:application_id]}"},
+        {Tesla.Middleware.BaseUrl, @base_url},
         {Tesla.Middleware.Headers, [{"authorization", "Bot #{opts[:token]}"}]}
       ] ++ @middleware
 
     adapter = opts[:adapter] || @adapter
 
-    Tesla.client(middleware, adapter)
+    %{
+      client: Tesla.client(middleware, adapter),
+      application_id: opts[:application_id]
+    }
   end
 
   # Global Commands
 
   @impl true
-  def get_global_commands(client) do
-    case get(client, "/commands") do
+  def get_global_commands(%{client: client, application_id: application_id}) do
+    case get(client, "/applications/#{application_id}/commands") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -39,8 +42,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def get_global_command(client, command_id) do
-    case get(client, "/commands/#{command_id}") do
+  def get_global_command(%{client: client, application_id: application_id}, command_id) do
+    case get(client, "/applications/#{application_id}/commands/#{command_id}") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -48,8 +51,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def create_global_command(client, command) do
-    case post(client, "/commands", command) do
+  def create_global_command(%{client: client, application_id: application_id}, command) do
+    case post(client, "/applications/#{application_id}/commands", command) do
       {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -57,8 +60,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def update_global_command(client, command_id, command) do
-    case patch(client, "/commands/#{command_id}", command) do
+  def update_global_command(%{client: client, application_id: application_id}, command_id, command) do
+    case patch(client, "/applications/#{application_id}/commands/#{command_id}", command) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -66,8 +69,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def delete_global_command(client, command_id) do
-    case delete(client, "/commands/#{command_id}") do
+  def delete_global_command(%{client: client, application_id: application_id}, command_id) do
+    case delete(client, "/applications/#{application_id}/commands/#{command_id}") do
       {:ok, %{status: 204}} -> :ok
       {:ok, response} -> {:error, response}
       error -> error
@@ -75,8 +78,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def bulk_overwrite_global_commands(client, commands) do
-    case put(client, "/commands", commands) do
+  def bulk_overwrite_global_commands(%{client: client, application_id: application_id}, commands) do
+    case put(client, "/applications/#{application_id}/commands", commands) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -86,8 +89,8 @@ defmodule DiscordInteractions.APIImpl do
   # Guild Commands
 
   @impl true
-  def get_guild_commands(client, guild_id) do
-    case get(client, "/guilds/#{guild_id}/commands") do
+  def get_guild_commands(%{client: client, application_id: application_id}, guild_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -95,8 +98,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def get_guild_command(client, guild_id, command_id) do
-    case get(client, "/guilds/#{guild_id}/commands/#{command_id}") do
+  def get_guild_command(%{client: client, application_id: application_id}, guild_id, command_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -104,8 +107,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def create_guild_command(client, guild_id, command) do
-    case post(client, "/guilds/#{guild_id}/commands", command) do
+  def create_guild_command(%{client: client, application_id: application_id}, guild_id, command) do
+    case post(client, "/applications/#{application_id}/guilds/#{guild_id}/commands", command) do
       {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -113,8 +116,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def update_guild_command(client, guild_id, command_id, command) do
-    case patch(client, "/guilds/#{guild_id}/commands/#{command_id}", command) do
+  def update_guild_command(%{client: client, application_id: application_id}, guild_id, command_id, command) do
+    case patch(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}", command) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -122,8 +125,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def delete_guild_command(client, guild_id, command_id) do
-    case delete(client, "/guilds/#{guild_id}/commands/#{command_id}") do
+  def delete_guild_command(%{client: client, application_id: application_id}, guild_id, command_id) do
+    case delete(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}") do
       {:ok, %{status: 204}} -> :ok
       {:ok, response} -> {:error, response}
       error -> error
@@ -131,8 +134,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def bulk_overwrite_guild_commands(client, guild_id, commands) do
-    case put(client, "/guilds/#{guild_id}/commands", commands) do
+  def bulk_overwrite_guild_commands(%{client: client, application_id: application_id}, guild_id, commands) do
+    case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands", commands) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -142,8 +145,8 @@ defmodule DiscordInteractions.APIImpl do
   # Command Permissions
 
   @impl true
-  def get_guild_command_permissions(client, guild_id) do
-    case get(client, "/guilds/#{guild_id}/commands/permissions") do
+  def get_guild_command_permissions(%{client: client, application_id: application_id}, guild_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/permissions") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -151,8 +154,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def get_command_permissions(client, guild_id, command_id) do
-    case get(client, "/guilds/#{guild_id}/commands/#{command_id}/permissions") do
+  def get_command_permissions(%{client: client, application_id: application_id}, guild_id, command_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -160,8 +163,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def update_command_permissions(client, guild_id, command_id, permissions) do
-    case put(client, "/guilds/#{guild_id}/commands/#{command_id}/permissions", permissions) do
+  def update_command_permissions(%{client: client, application_id: application_id}, guild_id, command_id, permissions) do
+    case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions", permissions) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -169,8 +172,8 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def batch_update_command_permissions(client, guild_id, permissions) do
-    case put(client, "/guilds/#{guild_id}/commands/permissions", permissions) do
+  def batch_update_command_permissions(%{client: client, application_id: application_id}, guild_id, permissions) do
+    case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/permissions", permissions) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
