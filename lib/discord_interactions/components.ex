@@ -637,7 +637,7 @@ defmodule DiscordInteractions.Components do
     %{type: @container}
     |> optional(:id)
     |> required(:components)
-    |> optional(:accent_color)
+    |> optional(:accent_color, color(opts[:accent_color]))
     |> optional_bool(:spoiler)
   end
 
@@ -648,4 +648,7 @@ defmodule DiscordInteractions.Components do
     %{url: url}
   end
 
+  defp color(code) when is_integer(code), do: code
+  defp color("#" <> code) when is_binary(code), do: String.to_integer(code, 16)
+  defp color(code) when is_binary(code), do: String.to_integer(code, 16)
 end
