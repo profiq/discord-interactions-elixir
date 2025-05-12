@@ -170,7 +170,14 @@ defmodule DiscordInteractions.Components do
         style: :success,
         label: "Confirm",
         custom_id: "confirm_button",
-        emoji: %{name: "✅"}
+        emoji: DiscordInteractions.Components.emoji(name: "✅")
+      )
+
+      # Create a premium button
+      DiscordInteractions.Components.button(
+        style: :premium,
+        label: "Premium Feature",
+        sku_id: "123456789"
       )
   """
   @spec button(id: integer(), style: atom(), label: String.t(), custom_id: String.t(), url: String.t(), emoji: emoji(), disabled: boolean()) :: component()
@@ -247,10 +254,12 @@ defmodule DiscordInteractions.Components do
       DiscordInteractions.Components.string_select(
         custom_id: "select_option",
         options: [
-          %{label: "Option 1", value: "opt1"},
-          %{label: "Option 2", value: "opt2"}
+          DiscordInteractions.Components.select_option(label: "Option 1", value: "opt1"),
+          DiscordInteractions.Components.select_option(label: "Option 2", value: "opt2")
         ],
-        placeholder: "Select an option"
+        placeholder: "Select an option",
+        min_values: 1,
+        max_values: 1
       )
   """
   @spec string_select([id: integer(), custom_id: String.t(), options: [map()], placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
@@ -265,6 +274,33 @@ defmodule DiscordInteractions.Components do
     |> optional_bool(:disabled)
   end
 
+  @doc """
+  Creates a select option for use in string select menus.
+
+  ## Options
+  - `label` - The label for the option (displayed to users)
+  - `value` - The value of the option (sent to your application)
+  - `description` - Optional description for the option
+  - `emoji` - Optional emoji to display with the option
+  - `default` - Whether this option is selected by default (default: `false`)
+
+  ## Examples
+
+      # Create a basic select option
+      DiscordInteractions.Components.select_option(
+        label: "Option 1",
+        value: "opt1"
+      )
+
+      # Create a select option with description and emoji
+      DiscordInteractions.Components.select_option(
+        label: "Option 2",
+        value: "opt2",
+        description: "This is option 2",
+        emoji: DiscordInteractions.Components.emoji(name: "✅"),
+        default: true
+      )
+  """
   @spec select_option([label: String.t(), value: String.t(), description: String.t(), emoji: emoji(), default: boolean()]) :: map()
   def select_option(opts) do
     %{}
@@ -342,7 +378,18 @@ defmodule DiscordInteractions.Components do
       # Create a user select menu
       DiscordInteractions.Components.user_select(
         custom_id: "select_user",
-        placeholder: "Select a user"
+        placeholder: "Select a user",
+        min_values: 1,
+        max_values: 1
+      )
+
+      # Create a user select menu with default values
+      DiscordInteractions.Components.user_select(
+        custom_id: "select_user",
+        placeholder: "Select a user",
+        default_values: [%{id: "123456789", type: "user"}],
+        min_values: 1,
+        max_values: 3
       )
   """
   @spec user_select([id: integer(), custom_id: String.t(), placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
@@ -372,7 +419,18 @@ defmodule DiscordInteractions.Components do
       # Create a role select menu
       DiscordInteractions.Components.role_select(
         custom_id: "select_role",
-        placeholder: "Select a role"
+        placeholder: "Select a role",
+        min_values: 1,
+        max_values: 1
+      )
+
+      # Create a role select menu with default values
+      DiscordInteractions.Components.role_select(
+        custom_id: "select_role",
+        placeholder: "Select a role",
+        default_values: [%{id: "123456789", type: "role"}],
+        min_values: 1,
+        max_values: 3
       )
   """
   @spec role_select([id: integer(), custom_id: String.t(), placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
@@ -402,7 +460,21 @@ defmodule DiscordInteractions.Components do
       # Create a mentionable select menu
       DiscordInteractions.Components.mentionable_select(
         custom_id: "select_mentionable",
-        placeholder: "Select a user or role"
+        placeholder: "Select a user or role",
+        min_values: 1,
+        max_values: 1
+      )
+
+      # Create a mentionable select menu with default values
+      DiscordInteractions.Components.mentionable_select(
+        custom_id: "select_mentionable",
+        placeholder: "Select a user or role",
+        default_values: [
+          %{id: "123456789", type: "user"},
+          %{id: "987654321", type: "role"}
+        ],
+        min_values: 1,
+        max_values: 5
       )
   """
   @spec mentionable_select([id: integer(), custom_id: String.t(), placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
@@ -489,7 +561,21 @@ defmodule DiscordInteractions.Components do
           )
         ],
         accessory: DiscordInteractions.Components.thumbnail(
-          DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png")
+          media: "https://example.com/image.png"
+        )
+      )
+
+      # Create a section with ID
+      DiscordInteractions.Components.section(
+        id: "intro_section",
+        components: [
+          DiscordInteractions.Components.text_display(
+            content: "This is some text content"
+          )
+        ],
+        accessory: DiscordInteractions.Components.thumbnail(
+          media: "https://example.com/image.png",
+          description: "Example image"
         )
       )
   """
@@ -540,10 +626,21 @@ defmodule DiscordInteractions.Components do
 
   ## Examples
 
-      # Create a thumbnail
+      # Create a thumbnail with a URL
       DiscordInteractions.Components.thumbnail(
-        media: DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png"),
+        media: "https://example.com/image.png"
+      )
+
+      # Create a thumbnail with description
+      DiscordInteractions.Components.thumbnail(
+        media: "https://example.com/image.png",
         description: "Example image"
+      )
+
+      # Create a thumbnail with spoiler
+      DiscordInteractions.Components.thumbnail(
+        media: "https://example.com/image.png",
+        spoiler: true
       )
   """
   @spec thumbnail([id: integer(), media: String.t() | media(), description: String.t(), spoiler: boolean()]) :: component()
@@ -564,11 +661,20 @@ defmodule DiscordInteractions.Components do
 
   ## Examples
 
-      # Create a media gallery
+      # Create a media gallery with URLs
       DiscordInteractions.Components.media_gallery(
         items: [
-          DiscordInteractions.Components.unfurled_media_item("https://example.com/image1.png"),
-          DiscordInteractions.Components.unfurled_media_item("https://example.com/image2.png")
+          "https://example.com/image1.png",
+          "https://example.com/image2.png"
+        ]
+      )
+
+      # Create a media gallery with ID
+      DiscordInteractions.Components.media_gallery(
+        id: "my_gallery",
+        items: [
+          "https://example.com/image1.png",
+          "https://example.com/image2.png"
         ]
       )
   """
@@ -589,9 +695,15 @@ defmodule DiscordInteractions.Components do
 
   ## Examples
 
-      # Create a file component
+      # Create a file component with URL
       DiscordInteractions.Components.file(
-        file: DiscordInteractions.Components.unfurled_media_item("https://example.com/document.pdf")
+        file: "https://example.com/document.pdf"
+      )
+
+      # Create a file component with spoiler
+      DiscordInteractions.Components.file(
+        file: "https://example.com/document.pdf",
+        spoiler: true
       )
   """
   @spec file([id: integer(), file: String.t() | media(), spoiler: boolean()]) :: component()
@@ -649,11 +761,44 @@ defmodule DiscordInteractions.Components do
               )
             ],
             accessory: DiscordInteractions.Components.thumbnail(
-              media: DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png")
+              media: "https://example.com/image.png"
+            )
+          )
+        ]
+      )
+
+      # Create a container with accent color as integer
+      DiscordInteractions.Components.container(
+        components: [
+          DiscordInteractions.Components.section(
+            components: [
+              DiscordInteractions.Components.text_display(
+                content: "This is some text content"
+              )
+            ],
+            accessory: DiscordInteractions.Components.thumbnail(
+              media: "https://example.com/image.png"
             )
           )
         ],
         accent_color: 0xFF0000
+      )
+
+      # Create a container with accent color as hex string
+      DiscordInteractions.Components.container(
+        components: [
+          DiscordInteractions.Components.section(
+            components: [
+              DiscordInteractions.Components.text_display(
+                content: "This is some text content"
+              )
+            ],
+            accessory: DiscordInteractions.Components.thumbnail(
+              media: "https://example.com/image.png"
+            )
+          )
+        ],
+        accent_color: "#FF0000"
       )
   """
   @spec container([id: integer(), components: [component()], accent_color: integer() | String.t(), spoiler: boolean()]) :: component()
