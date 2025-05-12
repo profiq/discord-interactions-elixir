@@ -522,11 +522,11 @@ defmodule DiscordInteractions.Components do
         description: "Example image"
       )
   """
-  @spec thumbnail([id: integer(), media: media(), description: String.t(), spoiler: boolean()]) :: component()
+  @spec thumbnail([id: integer(), media: String.t() | media(), description: String.t(), spoiler: boolean()]) :: component()
   def thumbnail(opts) do
     %{type: @thumbnail}
     |> optional(:id)
-    |> required(:media)
+    |> required(:media, unfurled_media_item(opts[:media]))
     |> optional(:description)
     |> optional_bool(:spoiler)
   end
@@ -548,11 +548,11 @@ defmodule DiscordInteractions.Components do
         ]
       )
   """
-  @spec media_gallery([id: integer(), items: [media()]]) :: component()
+  @spec media_gallery([id: integer(), items: [String.t() | media()]]) :: component()
   def media_gallery(opts) do
     %{type: @media_gallery}
     |> optional(:id)
-    |> required(:items)
+    |> required(:items, Enum.map(opts[:items], &unfurled_media_item/1))
   end
 
   @doc """
@@ -570,11 +570,11 @@ defmodule DiscordInteractions.Components do
         file: DiscordInteractions.Components.unfurled_media_item("https://example.com/document.pdf")
       )
   """
-  @spec file([id: integer(), file: media(), spoiler: boolean()]) :: component()
+  @spec file([id: integer(), file: String.t() | media(), spoiler: boolean()]) :: component()
   def file(opts) do
     %{type: @file_component}
     |> optional(:id)
-    |> required(:file)
+    |> required(:file, unfurled_media_item(opts[:file]))
     |> optional_bool(:spoiler)
   end
 
@@ -641,18 +641,10 @@ defmodule DiscordInteractions.Components do
     |> optional_bool(:spoiler)
   end
 
-  @doc """
-  Creates an unfurled media item for use in media galleries.
+  @spec unfurled_media_item(String.t() | map()) :: media()
+  defp unfurled_media_item(%{} = item), do: item
 
-  ## Parameters
-  - `url` - URL of the media item
-
-  ## Examples
-
-      # Create an unfurled media item
-      DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png")
-  """
-  def unfurled_media_item(url) do
+  defp unfurled_media_item(url) do
     %{url: url}
   end
 
