@@ -7,19 +7,26 @@ defmodule DiscordInteractions do
 
   @type command :: %{
     definition: map(),
-    handler: function(),
+    handler: function() | nil,
+    autocomplete_handler: function() | nil,
     guilds: list(String.t())
   }
 
   @type config :: %{
-    global_commands: [command],
-    guild_commands: %{guild => command},
+    global_commands: %{String.t() => command},
+    guild_commands: %{{guild, String.t()} => command},
     message_component_handler: function() | nil,
     modal_submit_handler: function() | nil
   }
 
+  @application_command 2
+  @message_component 3
+  @application_command_autocomplete 4
+  @modal_submit 5
+
   defmacro interactions(do: block) do
     quote do
+      @spec init() :: DiscordInteractions.config()
       def init do
         var!(interactions) = %{
           global_commands: %{},
@@ -38,6 +45,7 @@ defmodule DiscordInteractions do
       var!(command) = %{
         definition: %{name: unquote(name)},
         handler: nil,
+        autocomplete_handler: nil,
         guilds: []
       }
 
@@ -107,12 +115,45 @@ defmodule DiscordInteractions do
 
       import DiscordInteractions
 
-      def handle(%{"type" => 2, "data" => %{"name" => command_name}, "guild_id" => guild_id} = itx) do
+      @spec handle(map()) :: map()
+      def handle(%{"type" => unquote(@application_command), "data" => %{"name" => command_name}, "guild_id" => guild_id} = itx) do
         # Handle application command
         case init() do
-          %{guild_commands: %{{^guild_id, ^command_name} => %{handler: handler}}} ->
+          %{guild_commands: %{{^guild_id, ^command_name} => %{handler: handler}}} when not is_nil(handler) ->
             handler.(itx)
-          %{global_commands: %{^command_name => %{handler: handler}}} ->
+          %{global_commands: %{^command_name => %{handler: handler}}} when not is_nil(handler) ->
+            handler.(itx)
+          _ ->
+            :error
+        end
+      end
+
+      def handle(%{"type" => unquote(@message_component)} = itx) do
+        # Handle message component
+        case init() do
+          %{message_component_handler: handler} when not is_nil(handler) ->
+            handler.(itx)
+          _ ->
+            :error
+        end
+      end
+
+      def handle(%{"type" => unquote(@application_command_autocomplete), "data" => %{"name" => command_name}, "guild_id" => guild_id} = itx) do
+        # Handle application command autocomplete
+        case init() do
+          %{guild_commands: %{{^guild_id, ^command_name} => %{autocomplete_handler: handler}}} when not is_nil(handler) ->
+            handler.(itx)
+          %{global_commands: %{^command_name => %{autocomplete_handler: handler}}} when not is_nil(handler) ->
+            handler.(itx)
+          _ ->
+            :error
+        end
+      end
+
+      def handle(%{"type" => unquote(@modal_submit)} = itx) do
+        # Handle modal submit
+        case init() do
+          %{modal_submit_handler: handler} when not is_nil(handler) ->
             handler.(itx)
           _ ->
             :error
