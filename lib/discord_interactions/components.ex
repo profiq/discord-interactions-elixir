@@ -207,6 +207,30 @@ defmodule DiscordInteractions.Components do
   end
 
   @doc """
+  Creates an emoji object for use in components like buttons.
+
+  ## Options
+  - `name` - The name of the emoji (e.g., "✅")
+  - `id` - The ID of a custom emoji (optional)
+  - `animated` - Whether the emoji is animated (optional)
+
+  ## Examples
+
+      # Create a simple emoji
+      DiscordInteractions.Components.emoji(name: "✅")
+
+      # Create a custom emoji with ID
+      DiscordInteractions.Components.emoji(name: "custom_emoji", id: "123456789", animated: true)
+  """
+  @spec emoji([animated: boolean(), id: String.t(), name: String.t()]) :: emoji()
+  def emoji(opts) do
+    %{}
+    |> optional(:animated)
+    |> optional(:id)
+    |> optional(:name)
+  end
+
+  @doc """
   Creates a string select menu component.
 
   ## Options
