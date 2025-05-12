@@ -56,17 +56,56 @@ defmodule DiscordInteractions.Components do
   @success 3
   @danger 4
   @link 5
+  @premium 6
 
   # Text input styles
   @short 1
   @paragraph 2
 
-  # Text display styles
-  @normal 0
-  @heading 1
-  @subheading 2
-  @quote 3
-  @code_block 4
+  # Channel types
+  @guild_text 0
+  @dm 1
+  @guild_voice 2
+  @group_dm 3
+  @guild_category 4
+  @guild_announcement 5
+  @announcement_thread 10
+  @public_thread 11
+  @private_thread 12
+  @guild_stage_voice 13
+  @guild_directory 14
+  @guild_forum 15
+  @guild_media 16
+
+  defmacrop required(component, key) do
+    quote do
+      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), var!(opts)[unquote(key)]), else: unquote(component)
+    end
+  end
+
+  defmacrop required(component, key, value) do
+    quote do
+      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), unquote(value)), else: unquote(component)
+    end
+  end
+
+  defmacrop optional(component, key) do
+    quote do
+      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), var!(opts)[unquote(key)]), else: unquote(component)
+    end
+  end
+
+  defmacrop optional(component, key, value) do
+    quote do
+      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), unquote(value)), else: unquote(component)
+    end
+  end
+
+  defmacrop optional_bool(component, key) do
+    quote do
+      optional(unquote(component), unquote(key), true)
+    end
+  end
 
   @doc """
   Creates an action row component.
@@ -76,83 +115,33 @@ defmodule DiscordInteractions.Components do
 
   ## Options
   - `components` - List of components to include in the action row
+  - `id` - Optional identifier for the action row
 
   ## Examples
 
       # Create an action row with a button
-      DiscordInteractions.Components.action_row([
-        DiscordInteractions.Components.button(
-          style: :primary,
-          label: "Click Me",
-          custom_id: "click_button"
-        )
-      ])
-  """
-  @spec action_row(components()) :: component()
-  def action_row(components) when is_list(components) do
-    %{
-      "type" => @action_row,
-      "components" => components
-    }
-  end
-
-  @doc """
-  Creates a section component.
-
-  Sections are containers for content components like text, thumbnails, etc.
-
-  ## Options
-  - `components` - List of content components to include in the section
-
-  ## Examples
-
-      # Create a section with text display
-      DiscordInteractions.Components.section([
-        DiscordInteractions.Components.text_display(
-          content: "This is some text content"
-        )
-      ])
-  """
-  @spec section(components()) :: component()
-  def section(components) when is_list(components) do
-    %{
-      "type" => @section,
-      "components" => components
-    }
-  end
-
-  @doc """
-  Creates a container component.
-
-  Containers are used to group sections together.
-
-  ## Options
-  - `components` - List of section components to include in the container
-
-  ## Examples
-
-      # Create a container with a section
-      DiscordInteractions.Components.container([
-        DiscordInteractions.Components.section([
-          DiscordInteractions.Components.text_display(
-            content: "This is some text content"
+      DiscordInteractions.Components.action_row(
+        components: [
+          DiscordInteractions.Components.button(
+            style: :primary,
+            label: "Click Me",
+            custom_id: "click_button"
           )
-        ])
-      ])
+        ]
+      )
   """
-  @spec container(components()) :: component()
-  def container(components) when is_list(components) do
-    %{
-      "type" => @container,
-      "components" => components
-    }
+  @spec action_row(keyword()) :: component()
+  def action_row(opts) do
+    %{type: @action_row}
+    |> optional(:id)
+    |> required(:components)
   end
 
   @doc """
   Creates a button component.
 
   ## Options
-  - `style` - Button style (`:primary`, `:secondary`, `:success`, `:danger`, `:link`)
+  - `style` - Button style (`:primary`, `:secondary`, `:success`, `:danger`, `:link`, `:premium`)
   - `label` - Button label text
   - `custom_id` - Custom identifier for the button (required for non-link buttons)
   - `url` - URL for link buttons (required for link buttons)
@@ -185,24 +174,35 @@ defmodule DiscordInteractions.Components do
   """
   @spec button(keyword()) :: component()
   def button(opts) do
-    style = get_button_style(opts[:style])
+    %{type: @button}
+    |> optional(:id)
+    |> required(:style, button_style(opts[:style]))
+    |> optional(:label)
+    |> optional(:emoji)
+    |> optional_bool(:disabled)
+    |> case do
+      %{style: @link} = button ->
+        required(button, :url)
 
-    button = %{
-      "type" => @button,
-      "style" => style,
-      "label" => opts[:label]
-    }
+      %{style: @premium} = button ->
+        required(button, :sku_id)
 
-    button = if style == @link do
-      Map.put(button, "url", opts[:url])
-    else
-      Map.put(button, "custom_id", opts[:custom_id])
+      button ->
+        required(button, :custom_id)
     end
+  end
 
-    button = if opts[:emoji], do: Map.put(button, "emoji", opts[:emoji]), else: button
-    button = if opts[:disabled], do: Map.put(button, "disabled", true), else: button
-
-    button
+  # Helper function to convert button style atoms to integers
+  defp button_style(style) do
+    case style do
+      :primary -> @primary
+      :secondary -> @secondary
+      :success -> @success
+      :danger -> @danger
+      :link -> @link
+      :premium -> @premium
+      _ -> @primary
+    end
   end
 
   @doc """
@@ -230,153 +230,24 @@ defmodule DiscordInteractions.Components do
   """
   @spec string_select(keyword()) :: component()
   def string_select(opts) do
-    select = %{
-      "type" => @string_select,
-      "custom_id" => opts[:custom_id],
-      "options" => opts[:options]
-    }
-
-    select = if opts[:placeholder], do: Map.put(select, "placeholder", opts[:placeholder]), else: select
-    select = if opts[:min_values], do: Map.put(select, "min_values", opts[:min_values]), else: select
-    select = if opts[:max_values], do: Map.put(select, "max_values", opts[:max_values]), else: select
-    select = if opts[:disabled], do: Map.put(select, "disabled", true), else: select
-
-    select
+    %{type: @string_select}
+    |> optional(:id)
+    |> required(:custom_id)
+    |> required(:options)
+    |> optional(:placeholder)
+    |> required(:min_values)
+    |> required(:max_values)
+    |> optional_bool(:disabled)
   end
 
-  @doc """
-  Creates a user select menu component.
-
-  ## Options
-  - `custom_id` - Custom identifier for the select menu
-  - `placeholder` - Placeholder text when no option is selected (optional)
-  - `min_values` - Minimum number of selected values (default: 1)
-  - `max_values` - Maximum number of selected values (default: 1)
-  - `disabled` - Whether the select menu is disabled (default: `false`)
-
-  ## Examples
-
-      # Create a user select menu
-      DiscordInteractions.Components.user_select(
-        custom_id: "select_user",
-        placeholder: "Select a user"
-      )
-  """
-  @spec user_select(keyword()) :: component()
-  def user_select(opts) do
-    select = %{
-      "type" => @user_select,
-      "custom_id" => opts[:custom_id]
-    }
-
-    select = if opts[:placeholder], do: Map.put(select, "placeholder", opts[:placeholder]), else: select
-    select = if opts[:min_values], do: Map.put(select, "min_values", opts[:min_values]), else: select
-    select = if opts[:max_values], do: Map.put(select, "max_values", opts[:max_values]), else: select
-    select = if opts[:disabled], do: Map.put(select, "disabled", true), else: select
-
-    select
-  end
-
-  @doc """
-  Creates a role select menu component.
-
-  ## Options
-  - `custom_id` - Custom identifier for the select menu
-  - `placeholder` - Placeholder text when no option is selected (optional)
-  - `min_values` - Minimum number of selected values (default: 1)
-  - `max_values` - Maximum number of selected values (default: 1)
-  - `disabled` - Whether the select menu is disabled (default: `false`)
-
-  ## Examples
-
-      # Create a role select menu
-      DiscordInteractions.Components.role_select(
-        custom_id: "select_role",
-        placeholder: "Select a role"
-      )
-  """
-  @spec role_select(keyword()) :: component()
-  def role_select(opts) do
-    select = %{
-      "type" => @role_select,
-      "custom_id" => opts[:custom_id]
-    }
-
-    select = if opts[:placeholder], do: Map.put(select, "placeholder", opts[:placeholder]), else: select
-    select = if opts[:min_values], do: Map.put(select, "min_values", opts[:min_values]), else: select
-    select = if opts[:max_values], do: Map.put(select, "max_values", opts[:max_values]), else: select
-    select = if opts[:disabled], do: Map.put(select, "disabled", true), else: select
-
-    select
-  end
-
-  @doc """
-  Creates a mentionable select menu component.
-
-  ## Options
-  - `custom_id` - Custom identifier for the select menu
-  - `placeholder` - Placeholder text when no option is selected (optional)
-  - `min_values` - Minimum number of selected values (default: 1)
-  - `max_values` - Maximum number of selected values (default: 1)
-  - `disabled` - Whether the select menu is disabled (default: `false`)
-
-  ## Examples
-
-      # Create a mentionable select menu
-      DiscordInteractions.Components.mentionable_select(
-        custom_id: "select_mentionable",
-        placeholder: "Select a user or role"
-      )
-  """
-  @spec mentionable_select(keyword()) :: component()
-  def mentionable_select(opts) do
-    select = %{
-      "type" => @mentionable_select,
-      "custom_id" => opts[:custom_id]
-    }
-
-    select = if opts[:placeholder], do: Map.put(select, "placeholder", opts[:placeholder]), else: select
-    select = if opts[:min_values], do: Map.put(select, "min_values", opts[:min_values]), else: select
-    select = if opts[:max_values], do: Map.put(select, "max_values", opts[:max_values]), else: select
-    select = if opts[:disabled], do: Map.put(select, "disabled", true), else: select
-
-    select
-  end
-
-  @doc """
-  Creates a channel select menu component.
-
-  ## Options
-  - `custom_id` - Custom identifier for the select menu
-  - `placeholder` - Placeholder text when no option is selected (optional)
-  - `min_values` - Minimum number of selected values (default: 1)
-  - `max_values` - Maximum number of selected values (default: 1)
-  - `channel_types` - List of channel types to include (optional)
-  - `disabled` - Whether the select menu is disabled (default: `false`)
-
-  ## Examples
-
-      # Create a channel select menu
-      DiscordInteractions.Components.channel_select(
-        custom_id: "select_channel",
-        placeholder: "Select a channel",
-        channel_types: [0, 2] # Text and voice channels
-      )
-  """
-  @spec channel_select(keyword()) :: component()
-  def channel_select(opts) do
-    select = %{
-      "type" => @channel_select,
-      "custom_id" => opts[:custom_id]
-    }
-
-    select = if opts[:placeholder], do: Map.put(select, "placeholder", opts[:placeholder]), else: select
-    select = if opts[:min_values], do: Map.put(select, "min_values", opts[:min_values]), else: select
-    select = if opts[:max_values], do: Map.put(select, "max_values", opts[:max_values]), else: select
-    select = if opts[:channel_types], do: Map.put(select, "channel_types", opts[:channel_types]), else: select
-    select = if opts[:disabled], do: Map.put(select, "disabled", true), else: select
-
-    select
+  @spec select_option(keyword()) :: map()
+  def select_option(opts) do
+    %{}
+    |> required(:label)
+    |> required(:value)
+    |> optional(:description)
+    |> optional(:emoji)
+    |> optional_bool(:default)
   end
 
   @doc """
@@ -417,23 +288,192 @@ defmodule DiscordInteractions.Components do
     style = case opts[:style] do
       :short -> @short
       :paragraph -> @paragraph
-      _ -> @short
     end
 
-    input = %{
-      "type" => @text_input,
-      "custom_id" => opts[:custom_id],
-      "style" => style,
-      "label" => opts[:label]
-    }
+    %{type: @text_input}
+    |> optional(:id)
+    |> required(:custom_id)
+    |> required(:style, style)
+    |> required(:label)
+    |> optional(:min_length)
+    |> optional(:max_length)
+    |> optional_bool(:required)
+    |> optional(:value)
+    |> optional(:placeholder)
+  end
 
-    input = if opts[:min_length], do: Map.put(input, "min_length", opts[:min_length]), else: input
-    input = if opts[:max_length], do: Map.put(input, "max_length", opts[:max_length]), else: input
-    input = if is_nil(opts[:required]), do: Map.put(input, "required", true), else: Map.put(input, "required", opts[:required])
-    input = if opts[:value], do: Map.put(input, "value", opts[:value]), else: input
-    input = if opts[:placeholder], do: Map.put(input, "placeholder", opts[:placeholder]), else: input
+  @doc """
+  Creates a user select menu component.
 
-    input
+  ## Options
+  - `custom_id` - Custom identifier for the select menu
+  - `placeholder` - Placeholder text when no option is selected (optional)
+  - `min_values` - Minimum number of selected values (default: 1)
+  - `max_values` - Maximum number of selected values (default: 1)
+  - `disabled` - Whether the select menu is disabled (default: `false`)
+
+  ## Examples
+
+      # Create a user select menu
+      DiscordInteractions.Components.user_select(
+        custom_id: "select_user",
+        placeholder: "Select a user"
+      )
+  """
+  @spec user_select(keyword()) :: component()
+  def user_select(opts) do
+    %{type: @user_select}
+    |> optional(:id)
+    |> required(:custom_id)
+    |> optional(:placeholder)
+    |> optional(:default_values)
+    |> required(:min_values)
+    |> required(:max_values)
+    |> optional_bool(:disabled)
+  end
+
+  @doc """
+  Creates a role select menu component.
+
+  ## Options
+  - `custom_id` - Custom identifier for the select menu
+  - `placeholder` - Placeholder text when no option is selected (optional)
+  - `min_values` - Minimum number of selected values (default: 1)
+  - `max_values` - Maximum number of selected values (default: 1)
+  - `disabled` - Whether the select menu is disabled (default: `false`)
+
+  ## Examples
+
+      # Create a role select menu
+      DiscordInteractions.Components.role_select(
+        custom_id: "select_role",
+        placeholder: "Select a role"
+      )
+  """
+  @spec role_select(keyword()) :: component()
+  def role_select(opts) do
+    %{type: @role_select}
+    |> optional(:id)
+    |> required(:custom_id)
+    |> optional(:placeholder)
+    |> optional(:default_values)
+    |> optional(:min_values)
+    |> optional(:max_values)
+    |> optional_bool(:disabled)
+  end
+
+  @doc """
+  Creates a mentionable select menu component.
+
+  ## Options
+  - `custom_id` - Custom identifier for the select menu
+  - `placeholder` - Placeholder text when no option is selected (optional)
+  - `min_values` - Minimum number of selected values (default: 1)
+  - `max_values` - Maximum number of selected values (default: 1)
+  - `disabled` - Whether the select menu is disabled (default: `false`)
+
+  ## Examples
+
+      # Create a mentionable select menu
+      DiscordInteractions.Components.mentionable_select(
+        custom_id: "select_mentionable",
+        placeholder: "Select a user or role"
+      )
+  """
+  @spec mentionable_select(keyword()) :: component()
+  def mentionable_select(opts) do
+    %{type: @mentionable_select}
+    |> optional(:id)
+    |> required(:custom_id)
+    |> optional(:placeholder)
+    |> optional(:default_values)
+    |> required(:min_values)
+    |> required(:max_values)
+    |> optional_bool(:disabled)
+  end
+
+  @doc """
+  Creates a channel select menu component.
+
+  ## Options
+  - `custom_id` - Custom identifier for the select menu
+  - `placeholder` - Placeholder text when no option is selected (optional)
+  - `min_values` - Minimum number of selected values (default: 1)
+  - `max_values` - Maximum number of selected values (default: 1)
+  - `channel_types` - List of channel types to include (optional)
+  - `disabled` - Whether the select menu is disabled (default: `false`)
+
+  ## Examples
+
+      # Create a channel select menu
+      DiscordInteractions.Components.channel_select(
+        custom_id: "select_channel",
+        placeholder: "Select a channel",
+        channel_types: [:guild_text, :guild_voice] # Text and voice channels
+      )
+  """
+  @spec channel_select(keyword()) :: component()
+  def channel_select(opts) do
+    %{type: @channel_select}
+    |> optional(:id)
+    |> required(:custom_id)
+    |> optional(:channel_types, Enum.map(opts[:channel_types], &channel_type/1))
+    |> optional(:placeholder)
+    |> optional(:default_values)
+    |> required(:min_values)
+    |> required(:max_values)
+    |> optional_bool(:disabled)
+  end
+
+  defp channel_type(type) do
+    case type do
+      :guild_text -> @guild_text
+      :dm -> @dm
+      :guild_voice -> @guild_voice
+      :group_dm -> @group_dm
+      :guild_category -> @guild_category
+      :guild_announcement -> @guild_announcement
+      :announcement_thread -> @announcement_thread
+      :public_thread -> @public_thread
+      :private_thread -> @private_thread
+      :guild_stage_voice -> @guild_stage_voice
+      :guild_directory -> @guild_directory
+      :guild_forum -> @guild_forum
+      :guild_media -> @guild_media
+      _ -> @guild_text
+    end
+  end
+
+  @doc """
+  Creates a section component.
+
+  Sections are containers for content components like text, thumbnails, etc.
+
+  ## Options
+  - `components` - List of content components to include in the section
+  - `accessory` - Accessory component (e.g., thumbnail) to display alongside the section
+  - `id` - Optional identifier for the section
+
+  ## Examples
+
+      # Create a section with text display and thumbnail
+      DiscordInteractions.Components.section(
+        components: [
+          DiscordInteractions.Components.text_display(
+            content: "This is some text content"
+          )
+        ],
+        accessory: DiscordInteractions.Components.thumbnail(
+          DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png")
+        )
+      )
+  """
+  @spec section(keyword()) :: component()
+  def section(opts) do
+    %{type: @section}
+    |> optional(:id)
+    |> required(:components)
+    |> required(:accessory)
   end
 
   @doc """
@@ -459,204 +499,160 @@ defmodule DiscordInteractions.Components do
   """
   @spec text_display(keyword()) :: component()
   def text_display(opts) do
-    style = case opts[:style] do
-      :normal -> @normal
-      :heading -> @heading
-      :subheading -> @subheading
-      :quote -> @quote
-      :code_block -> @code_block
-      _ -> @normal
-    end
-
-    text = %{
-      "type" => @text_display,
-      "content" => opts[:content],
-      "style" => style
-    }
-
-    text = if opts[:format], do: Map.put(text, "format", opts[:format]), else: text
-
-    text
+    %{type: @text_display}
+    |> optional(:id)
+    |> required(:content)
   end
 
   @doc """
   Creates a thumbnail component.
 
   ## Options
-  - `url` - URL of the thumbnail image
-  - `width` - Width of the thumbnail (optional)
-  - `height` - Height of the thumbnail (optional)
+  - `media` - Media object with URL of the thumbnail image
+  - `id` - Optional identifier for the thumbnail
+  - `description` - Optional description for the thumbnail
+  - `spoiler` - Whether the thumbnail should be marked as a spoiler (default: `false`)
 
   ## Examples
 
       # Create a thumbnail
       DiscordInteractions.Components.thumbnail(
-        url: "https://example.com/image.png"
+        media: DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png"),
+        description: "Example image"
       )
   """
   @spec thumbnail(keyword()) :: component()
   def thumbnail(opts) do
-    thumbnail = %{
-      "type" => @thumbnail,
-      "url" => opts[:url]
-    }
-
-    thumbnail = if opts[:width], do: Map.put(thumbnail, "width", opts[:width]), else: thumbnail
-    thumbnail = if opts[:height], do: Map.put(thumbnail, "height", opts[:height]), else: thumbnail
-
-    thumbnail
+    %{type: @thumbnail}
+    |> optional(:id)
+    |> required(:media)
+    |> optional(:description)
+    |> optional_bool(:spoiler)
   end
 
   @doc """
   Creates a media gallery component.
 
   ## Options
-  - `media` - List of media items to include in the gallery
+  - `items` - List of media items to include in the gallery
+  - `id` - Optional identifier for the media gallery
 
   ## Examples
 
       # Create a media gallery
-      DiscordInteractions.Components.media_gallery([
-        %{url: "https://example.com/image1.png"},
-        %{url: "https://example.com/image2.png"}
-      ])
+      DiscordInteractions.Components.media_gallery(
+        items: [
+          DiscordInteractions.Components.unfurled_media_item("https://example.com/image1.png"),
+          DiscordInteractions.Components.unfurled_media_item("https://example.com/image2.png")
+        ]
+      )
   """
-  @spec media_gallery(list(map())) :: component()
-  def media_gallery(media) when is_list(media) do
-    %{
-      "type" => @media_gallery,
-      "media" => media
-    }
+  @spec media_gallery(keyword()) :: component()
+  def media_gallery(opts) do
+    %{type: @media_gallery}
+    |> optional(:id)
+    |> required(:items)
   end
 
   @doc """
   Creates a file component.
 
   ## Options
-  - `url` - URL of the file
-  - `filename` - Name of the file
+  - `file` - File object with URL and filename
+  - `id` - Optional identifier for the file component
+  - `spoiler` - Whether the file should be marked as a spoiler (default: `false`)
 
   ## Examples
 
       # Create a file component
       DiscordInteractions.Components.file(
-        url: "https://example.com/document.pdf",
-        filename: "document.pdf"
+        file: DiscordInteractions.Components.unfurled_media_item("https://example.com/document.pdf")
       )
   """
   @spec file(keyword()) :: component()
   def file(opts) do
-    %{
-      "type" => @file_component,
-      "url" => opts[:url],
-      "filename" => opts[:filename]
-    }
+    %{type: @file_component}
+    |> optional(:id)
+    |> required(:file)
+    |> optional_bool(:spoiler)
   end
 
   @doc """
   Creates a separator component.
 
+  ## Options
+  - `id` - Optional identifier for the separator
+  - `divider` - Whether to show a divider line (default: `false`)
+  - `spacing` - Spacing size ("small", "medium", "large")
+
   ## Examples
 
-      # Create a separator
-      DiscordInteractions.Components.separator()
+      # Create a separator with a divider
+      DiscordInteractions.Components.separator(divider: true)
+
+      # Create a separator with medium spacing
+      DiscordInteractions.Components.separator(spacing: "medium")
   """
-  @spec separator() :: component()
-  def separator() do
-    %{
-      "type" => @separator
-    }
+  @spec separator(keyword()) :: component()
+  def separator(opts) do
+    %{type: @separator}
+    |> optional(:id)
+    |> optional_bool(:divider)
+    |> optional(:spacing)
   end
 
   @doc """
-  Creates a modal response.
+  Creates a container component.
+
+  Containers are used to group sections together.
 
   ## Options
-  - `custom_id` - Custom identifier for the modal
-  - `title` - Title of the modal
-  - `components` - List of action rows containing components for the modal
+  - `components` - List of section components to include in the container
+  - `id` - Optional identifier for the container
+  - `accent_color` - Optional accent color for the container (integer color value)
+  - `spoiler` - Whether the container should be marked as a spoiler (default: `false`)
 
   ## Examples
 
-      # Create a modal with a text input
-      DiscordInteractions.Components.modal(
-        custom_id: "feedback_modal",
-        title: "Submit Feedback",
+      # Create a container with a section
+      DiscordInteractions.Components.container(
         components: [
-          DiscordInteractions.Components.action_row([
-            DiscordInteractions.Components.text_input(
-              custom_id: "feedback_input",
-              style: :paragraph,
-              label: "Feedback",
-              placeholder: "Enter your feedback"
+          DiscordInteractions.Components.section(
+            components: [
+              DiscordInteractions.Components.text_display(
+                content: "This is some text content"
+              )
+            ],
+            accessory: DiscordInteractions.Components.thumbnail(
+              media: DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png")
             )
-          ])
-        ]
-      )
-  """
-  @spec modal(keyword()) :: map()
-  def modal(opts) do
-    %{
-      "type" => 9, # Modal response type
-      "data" => %{
-        "custom_id" => opts[:custom_id],
-        "title" => opts[:title],
-        "components" => opts[:components]
-      }
-    }
-  end
-
-  @doc """
-  Creates a message response with components.
-
-  ## Options
-  - `content` - Message content (optional)
-  - `embeds` - List of embeds (optional)
-  - `components` - List of components (optional)
-  - `ephemeral` - Whether the message is ephemeral (default: `false`)
-
-  ## Examples
-
-      # Create a message with content and a button
-      DiscordInteractions.Components.message(
-        content: "Click the button below:",
-        components: [
-          DiscordInteractions.Components.action_row([
-            DiscordInteractions.Components.button(
-              style: :primary,
-              label: "Click Me",
-              custom_id: "click_button"
-            )
-          ])
+          )
         ],
-        ephemeral: true
+        accent_color: 0xFF0000
       )
   """
-  @spec message(keyword()) :: map()
-  def message(opts) do
-    message = %{
-      "type" => 4, # Message response type
-      "data" => %{}
-    }
-
-    data = message["data"]
-    data = if opts[:content], do: Map.put(data, "content", opts[:content]), else: data
-    data = if opts[:embeds], do: Map.put(data, "embeds", opts[:embeds]), else: data
-    data = if opts[:components], do: Map.put(data, "components", opts[:components]), else: data
-    data = if opts[:ephemeral], do: Map.put(data, "flags", 64), else: data
-
-    %{message | "data" => data}
+  @spec container(keyword()) :: component()
+  def container(opts) do
+    %{type: @container}
+    |> optional(:id)
+    |> required(:components)
+    |> optional(:accent_color)
+    |> optional_bool(:spoiler)
   end
 
-  # Helper function to convert button style atoms to integers
-  defp get_button_style(style) do
-    case style do
-      :primary -> @primary
-      :secondary -> @secondary
-      :success -> @success
-      :danger -> @danger
-      :link -> @link
-      _ -> @primary
-    end
+  @doc """
+  Creates an unfurled media item for use in media galleries.
+
+  ## Parameters
+  - `url` - URL of the media item
+
+  ## Examples
+
+      # Create an unfurled media item
+      DiscordInteractions.Components.unfurled_media_item("https://example.com/image.png")
+  """
+  def unfurled_media_item(url) do
+    %{url: url}
   end
+
 end
