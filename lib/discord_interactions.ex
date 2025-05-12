@@ -3,6 +3,21 @@ defmodule DiscordInteractions do
   Documentation for `DiscordInteractions`.
   """
 
+  @type guild :: String.t()
+
+  @type command :: %{
+    definition: map(),
+    handler: function(),
+    guilds: list(String.t())
+  }
+
+  @type config :: %{
+    global_commands: [command],
+    guild_commands: %{guild => command},
+    message_component_handler: function() | nil,
+    modal_submit_handler: function() | nil
+  }
+
   defmacro interactions(do: block) do
     quote do
       def init do
