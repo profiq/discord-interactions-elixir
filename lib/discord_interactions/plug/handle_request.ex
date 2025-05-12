@@ -4,6 +4,7 @@ defmodule DiscordInteractions.Plug.HandleRequest do
 
   @behaviour Plug
 
+  import DiscordInteractions.Util
   import Plug.Conn
 
   def init(opts), do: opts
@@ -19,13 +20,22 @@ defmodule DiscordInteractions.Plug.HandleRequest do
   end
 
   def call(conn, _opts) do
-    resp_body =
-      Jason.encode_to_iodata!(apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params]))
+    case apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params]) do
+      :error ->
+        error(conn, :internal_server_error) # send 500
 
-    conn
-    |> resp(200, resp_body)
-    |> put_resp_header("content-type", "application/json")
-    |> send_resp()
-    |> halt()
+      :ok ->
+        error(conn, :no_content) # send 204
+
+      {:ok, response} ->
+        resp_body =
+          Jason.encode_to_iodata!(response)
+
+        conn
+        |> resp(200, resp_body)
+        |> put_resp_header("content-type", "application/json")
+        |> send_resp()
+        |> halt()
+    end
   end
 end
