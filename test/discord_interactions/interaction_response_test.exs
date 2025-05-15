@@ -16,7 +16,8 @@ defmodule DiscordInteractions.InteractionResponseTest do
     end
 
     test "creates a message response with provided data" do
-      assert %{type: 4, data: %{content: "Hello"}} = InteractionResponse.channel_message_with_source(%{content: "Hello"})
+      assert %{type: 4, data: %{content: "Hello"}} =
+               InteractionResponse.channel_message_with_source(%{content: "Hello"})
     end
   end
 
@@ -26,7 +27,8 @@ defmodule DiscordInteractions.InteractionResponseTest do
     end
 
     test "creates a deferred message response with provided data" do
-      assert %{type: 5, data: %{content: "Loading"}} = InteractionResponse.deferred_channel_message_with_source(%{content: "Loading"})
+      assert %{type: 5, data: %{content: "Loading"}} =
+               InteractionResponse.deferred_channel_message_with_source(%{content: "Loading"})
     end
   end
 
@@ -36,7 +38,8 @@ defmodule DiscordInteractions.InteractionResponseTest do
     end
 
     test "creates a deferred update response with provided data" do
-      assert %{type: 6, data: %{content: "Updating"}} = InteractionResponse.deferred_update_message(%{content: "Updating"})
+      assert %{type: 6, data: %{content: "Updating"}} =
+               InteractionResponse.deferred_update_message(%{content: "Updating"})
     end
   end
 
@@ -46,24 +49,29 @@ defmodule DiscordInteractions.InteractionResponseTest do
     end
 
     test "creates an update message response with provided data" do
-      assert %{type: 7, data: %{content: "Updated"}} = InteractionResponse.update_message(%{content: "Updated"})
+      assert %{type: 7, data: %{content: "Updated"}} =
+               InteractionResponse.update_message(%{content: "Updated"})
     end
   end
 
   describe "application_command_autocomplete_result/1" do
     test "creates a default autocomplete response with empty choices" do
-      assert %{type: 8, data: %{choices: []}} = InteractionResponse.application_command_autocomplete_result()
+      assert %{type: 8, data: %{choices: []}} =
+               InteractionResponse.application_command_autocomplete_result()
     end
 
     test "creates an autocomplete response with provided choices" do
       choices = [%{name: "Option 1", value: "opt1"}, %{name: "Option 2", value: "opt2"}]
-      assert %{type: 8, data: %{choices: ^choices}} = InteractionResponse.application_command_autocomplete_result(%{choices: choices})
+
+      assert %{type: 8, data: %{choices: ^choices}} =
+               InteractionResponse.application_command_autocomplete_result(%{choices: choices})
     end
   end
 
   describe "modal/1" do
     test "creates a modal response with provided data" do
-      assert %{type: 9, data: %{title: "Form", custom_id: "form_id"}} = InteractionResponse.modal(%{title: "Form", custom_id: "form_id"})
+      assert %{type: 9, data: %{title: "Form", custom_id: "form_id"}} =
+               InteractionResponse.modal(%{title: "Form", custom_id: "form_id"})
     end
   end
 
@@ -107,15 +115,15 @@ defmodule DiscordInteractions.InteractionResponseTest do
       result = InteractionResponse.allowed_mentions(response, [])
 
       assert %{
-        data: %{
-          allowed_mentions: %{
-            parse: [],
-            roles: [],
-            users: [],
-            replied_user: false
-          }
-        }
-      } = result
+               data: %{
+                 allowed_mentions: %{
+                   parse: [],
+                   roles: [],
+                   users: [],
+                   replied_user: false
+                 }
+               }
+             } = result
     end
 
     test "sets all provided options" do
@@ -123,23 +131,24 @@ defmodule DiscordInteractions.InteractionResponseTest do
       roles = ["123", "456"]
       users = ["789"]
 
-      result = InteractionResponse.allowed_mentions(response, [
-        parse: [:users, :roles],
-        roles: roles,
-        users: users,
-        replied_user: true
-      ])
+      result =
+        InteractionResponse.allowed_mentions(response,
+          parse: [:users, :roles],
+          roles: roles,
+          users: users,
+          replied_user: true
+        )
 
       assert %{
-        data: %{
-          allowed_mentions: %{
-            parse: [:users, :roles],
-            roles: ^roles,
-            users: ^users,
-            replied_user: true
-          }
-        }
-      } = result
+               data: %{
+                 allowed_mentions: %{
+                   parse: [:users, :roles],
+                   roles: ^roles,
+                   users: ^users,
+                   replied_user: true
+                 }
+               }
+             } = result
     end
   end
 
@@ -154,7 +163,9 @@ defmodule DiscordInteractions.InteractionResponseTest do
     test "sets the components" do
       response = InteractionResponse.channel_message_with_source()
       components = [%{type: 1, components: [%{type: 2, label: "Button", custom_id: "btn1"}]}]
-      assert %{data: %{components: ^components}} = InteractionResponse.components(response, components)
+
+      assert %{data: %{components: ^components}} =
+               InteractionResponse.components(response, components)
     end
   end
 
@@ -162,7 +173,9 @@ defmodule DiscordInteractions.InteractionResponseTest do
     test "sets the attachments" do
       response = InteractionResponse.channel_message_with_source()
       attachments = [%{id: 1, filename: "file.txt"}]
-      assert %{data: %{attachments: ^attachments}} = InteractionResponse.attachments(response, attachments)
+
+      assert %{data: %{attachments: ^attachments}} =
+               InteractionResponse.attachments(response, attachments)
     end
   end
 
@@ -238,18 +251,20 @@ defmodule DiscordInteractions.InteractionResponseTest do
 
   describe "function chaining for message responses" do
     test "can chain content and flag functions together" do
-      response = InteractionResponse.channel_message_with_source()
-                 |> InteractionResponse.content("Hello, world!")
-                 |> InteractionResponse.ephemeral()
-                 |> InteractionResponse.suppress_embeds()
+      response =
+        InteractionResponse.channel_message_with_source()
+        |> InteractionResponse.content("Hello, world!")
+        |> InteractionResponse.ephemeral()
+        |> InteractionResponse.suppress_embeds()
 
       assert %{
-        type: 4,
-        data: %{
-          content: "Hello, world!",
-          flags: 66  # 64 (ephemeral) + 2 (suppress_embeds)
-        }
-      } = response
+               type: 4,
+               data: %{
+                 content: "Hello, world!",
+                 # 64 (ephemeral) + 2 (suppress_embeds)
+                 flags: 66
+               }
+             } = response
     end
   end
 
@@ -257,19 +272,20 @@ defmodule DiscordInteractions.InteractionResponseTest do
     test "can chain modal field setters together" do
       components = [%{type: 1, components: []}]
 
-      response = InteractionResponse.modal()
-                 |> InteractionResponse.title("My Form")
-                 |> InteractionResponse.custom_id("form_id")
-                 |> InteractionResponse.components(components)
+      response =
+        InteractionResponse.modal()
+        |> InteractionResponse.title("My Form")
+        |> InteractionResponse.custom_id("form_id")
+        |> InteractionResponse.components(components)
 
       assert %{
-        type: 9,
-        data: %{
-          title: "My Form",
-          custom_id: "form_id",
-          components: ^components
-        }
-      } = response
+               type: 9,
+               data: %{
+                 title: "My Form",
+                 custom_id: "form_id",
+                 components: ^components
+               }
+             } = response
     end
   end
 end

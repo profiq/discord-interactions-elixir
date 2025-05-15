@@ -49,19 +49,19 @@ defmodule DiscordInteractions.Embed do
   """
 
   @type t :: %{
-    optional(:title) => String.t(),
-    optional(:description) => String.t(),
-    optional(:url) => String.t(),
-    optional(:timestamp) => String.t(),
-    optional(:color) => integer(),
-    optional(:footer) => map(),
-    optional(:image) => map(),
-    optional(:thumbnail) => map(),
-    optional(:video) => map(),
-    optional(:provider) => map(),
-    optional(:author) => map(),
-    optional(:fields) => [map()]
-  }
+          optional(:title) => String.t(),
+          optional(:description) => String.t(),
+          optional(:url) => String.t(),
+          optional(:timestamp) => String.t(),
+          optional(:color) => integer(),
+          optional(:footer) => map(),
+          optional(:image) => map(),
+          optional(:thumbnail) => map(),
+          optional(:video) => map(),
+          optional(:provider) => map(),
+          optional(:author) => map(),
+          optional(:fields) => [map()]
+        }
 
   @doc """
   Creates a new empty embed object.
@@ -266,7 +266,10 @@ defmodule DiscordInteractions.Embed do
   @spec thumbnail(t(), String.t(), keyword()) :: t()
   def thumbnail(embed, url, opts \\ []) when is_binary(url) do
     thumbnail = %{url: url}
-    thumbnail = if opts[:proxy_url], do: Map.put(thumbnail, :proxy_url, opts[:proxy_url]), else: thumbnail
+
+    thumbnail =
+      if opts[:proxy_url], do: Map.put(thumbnail, :proxy_url, opts[:proxy_url]), else: thumbnail
+
     thumbnail = if opts[:height], do: Map.put(thumbnail, :height, opts[:height]), else: thumbnail
     thumbnail = if opts[:width], do: Map.put(thumbnail, :width, opts[:width]), else: thumbnail
 
@@ -348,7 +351,8 @@ defmodule DiscordInteractions.Embed do
       %{author: %{name: "John Doe", url: "https://example.com", icon_url: "https://example.com/icon.png"}}
   """
   @spec author(t(), String.t(), String.t() | nil, String.t() | nil, String.t() | nil) :: t()
-  def author(embed, name, url \\ nil, icon_url \\ nil, proxy_icon_url \\ nil) when is_binary(name) do
+  def author(embed, name, url \\ nil, icon_url \\ nil, proxy_icon_url \\ nil)
+      when is_binary(name) do
     author = %{name: name}
     author = if url, do: Map.put(author, :url, url), else: author
     author = if icon_url, do: Map.put(author, :icon_url, icon_url), else: author

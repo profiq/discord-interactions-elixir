@@ -22,10 +22,12 @@ defmodule DiscordInteractions.Plug.HandleRequest do
   def call(conn, _opts) do
     case apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params]) do
       :error ->
-        error(conn, :internal_server_error) # send 500
+        # send 500
+        error(conn, :internal_server_error)
 
       :ok ->
-        error(conn, :no_content) # send 204
+        # send 204
+        error(conn, :no_content)
 
       {:ok, response} ->
         resp_body =

@@ -62,7 +62,12 @@ defmodule DiscordInteractions.APIBehaviour do
               {:ok, list(permissions())} | error()
 
   # Interaction responses
-  @callback create_interaction_response(client(), interaction_id(), interaction_token(), interaction_response()) ::
+  @callback create_interaction_response(
+              client(),
+              interaction_id(),
+              interaction_token(),
+              interaction_response()
+            ) ::
               :ok | {:ok, interaction_callback_response()} | error()
 
   @callback get_original_interaction_response(client(), interaction_token()) ::

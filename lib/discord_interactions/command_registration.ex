@@ -18,11 +18,13 @@ defmodule DiscordInteractions.CommandRegistration do
   end
 
   def register_global_commands(commands) do
-    with {:bot_token, {:ok, bot_token}} <- {:bot_token, Application.fetch_env(:discord_interactions, :bot_token)},
-         {:application_id, {:ok, application_id}} <- {:application_id, Application.fetch_env(:discord_interactions, :application_id)},
+    with {:bot_token, {:ok, bot_token}} <-
+           {:bot_token, Application.fetch_env(:discord_interactions, :bot_token)},
+         {:application_id, {:ok, application_id}} <-
+           {:application_id, Application.fetch_env(:discord_interactions, :application_id)},
          client <- API.new(token: bot_token, application_id: application_id),
-         {:response, {:ok, _response}} <- {:response, API.bulk_overwrite_global_commands(client, commands)}
-    do
+         {:response, {:ok, _response}} <-
+           {:response, API.bulk_overwrite_global_commands(client, commands)} do
       Logger.info("Successfully registered Discord commands")
       :ok
     else

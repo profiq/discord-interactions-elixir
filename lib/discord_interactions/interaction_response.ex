@@ -74,15 +74,15 @@ defmodule DiscordInteractions.InteractionResponse do
   - `poll`: Poll object for creating polls
   """
   @type message :: %{
-    optional(:tts) => boolean(),
-    optional(:content) => String.t(),
-    optional(:embeds) => [map()],
-    optional(:allowed_mentions) => map(),
-    optional(:flags) => integer(),
-    optional(:components) => [Components.component()],
-    optional(:attachments) => [map()],
-    optional(:poll) => map()
-  }
+          optional(:tts) => boolean(),
+          optional(:content) => String.t(),
+          optional(:embeds) => [map()],
+          optional(:allowed_mentions) => map(),
+          optional(:flags) => integer(),
+          optional(:components) => [Components.component()],
+          optional(:attachments) => [map()],
+          optional(:poll) => map()
+        }
 
   @typedoc """
   Represents a choice for autocomplete suggestions.
@@ -93,10 +93,10 @@ defmodule DiscordInteractions.InteractionResponse do
   - `name_localizations`: Optional map of localized names for different languages
   """
   @type choice :: %{
-    optional(:name_localizations) => map(),
-    name: String.t(),
-    value: any(),
-  }
+          optional(:name_localizations) => map(),
+          name: String.t(),
+          value: any()
+        }
 
   @typedoc """
   Represents an autocomplete response with choices.
@@ -105,8 +105,8 @@ defmodule DiscordInteractions.InteractionResponse do
   - `choices`: Array of choice objects for autocomplete suggestions
   """
   @type autocomplete :: %{
-    choices: [choice()]
-  }
+          choices: [choice()]
+        }
 
   @typedoc """
   Represents a modal response.
@@ -117,10 +117,10 @@ defmodule DiscordInteractions.InteractionResponse do
   - `components`: Array of components to include in the modal
   """
   @type modal :: %{
-    title: String.t(),
-    custom_id: String.t(),
-    components: [Components.component()]
-  }
+          title: String.t(),
+          custom_id: String.t(),
+          components: [Components.component()]
+        }
 
   @typedoc """
   Represents a complete interaction response.
@@ -130,9 +130,9 @@ defmodule DiscordInteractions.InteractionResponse do
   - `data`: The data for the response, which varies based on the type
   """
   @type t :: %{
-    type: integer(),
-    data: message() | autocomplete() | modal() | %{}
-  }
+          type: integer(),
+          data: message() | autocomplete() | modal() | %{}
+        }
 
   @doc """
   Creates a Pong response to acknowledge a Ping interaction.
@@ -165,7 +165,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{content: "Hello!"}}
   """
   @spec channel_message_with_source(message()) :: t()
-  def channel_message_with_source(data \\ %{}), do: %{type: @channel_message_with_source, data: data}
+  def channel_message_with_source(data \\ %{}),
+    do: %{type: @channel_message_with_source, data: data}
 
   @doc """
   Creates a response that acknowledges an interaction and shows a loading state.
@@ -182,7 +183,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 5, data: %{}}
   """
   @spec deferred_channel_message_with_source(message()) :: t()
-  def deferred_channel_message_with_source(data \\ %{}), do: %{type: @deferred_channel_message_with_source, data: data}
+  def deferred_channel_message_with_source(data \\ %{}),
+    do: %{type: @deferred_channel_message_with_source, data: data}
 
   @doc """
   Creates a response that acknowledges a component interaction with a loading state.
@@ -261,8 +263,12 @@ defmodule DiscordInteractions.InteractionResponse do
   """
   @spec application_command_autocomplete_result([choice()] | autocomplete()) :: t()
   def application_command_autocomplete_result(data \\ [])
-  def application_command_autocomplete_result(choices) when is_list(choices), do: %{type: @application_command_autocomplete_result, data: %{choices: choices}}
-  def application_command_autocomplete_result(data), do: %{type: @application_command_autocomplete_result, data: data}
+
+  def application_command_autocomplete_result(choices) when is_list(choices),
+    do: %{type: @application_command_autocomplete_result, data: %{choices: choices}}
+
+  def application_command_autocomplete_result(data),
+    do: %{type: @application_command_autocomplete_result, data: data}
 
   @doc """
   Creates a response that shows a modal dialog.
@@ -343,7 +349,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{content: "Hello, world!"}}
   """
   @spec content(t(), String.t()) :: t()
-  def content(%{data: data} = response, content), do: %{response | data: Map.put(data, :content, content)}
+  def content(%{data: data} = response, content),
+    do: %{response | data: Map.put(data, :content, content)}
 
   @doc """
   Sets the embeds for a message response.
@@ -391,7 +398,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{embeds: [%{title: "User Profile", description: "User information", color: 5793266, thumbnail: %{url: "https://example.com/avatar.png"}, fields: [%{name: "Username", value: "JohnDoe", inline: true}, %{name: "Status", value: "Online", inline: true}], footer: %{text: "Last updated", icon_url: "https://example.com/icon.png"}}]}}
   """
   @spec embeds(t(), [map()]) :: t()
-  def embeds(%{data: data} = response, embeds), do: %{response | data: Map.put(data, :embeds, embeds)}
+  def embeds(%{data: data} = response, embeds),
+    do: %{response | data: Map.put(data, :embeds, embeds)}
 
   @doc """
   Sets the allowed mentions for a message response.
@@ -412,7 +420,12 @@ defmodule DiscordInteractions.InteractionResponse do
       iex> DiscordInteractions.InteractionResponse.allowed_mentions(response, parse: [:users])
       %{type: 4, data: %{allowed_mentions: %{parse: [:users], roles: [], users: [], replied_user: false}}}
   """
-  @spec allowed_mentions(t(), [parse: [:roles | :users | :everyone], roles: [String.t()], users: [String.t()], replied_user: boolean()]) :: t()
+  @spec allowed_mentions(t(),
+          parse: [:roles | :users | :everyone],
+          roles: [String.t()],
+          users: [String.t()],
+          replied_user: boolean()
+        ) :: t()
   def allowed_mentions(%{data: data} = response, opts) do
     allowed_mentions = %{
       parse: opts[:parse] || [],
@@ -460,7 +473,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{components: [%{type: 1, components: [%{type: 2, style: 1, label: "Click Me", custom_id: "btn1"}]}]}}
   """
   @spec components(t(), [Components.component()]) :: t()
-  def components(%{data: data} = response, components), do: %{response | data: Map.put(data, :components, components)}
+  def components(%{data: data} = response, components),
+    do: %{response | data: Map.put(data, :components, components)}
 
   @doc """
   Sets the attachments for a message response.
@@ -479,7 +493,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{attachments: [%{id: 1, filename: "file.txt", description: "A text file"}]}}
   """
   @spec attachments(t(), [map()]) :: t()
-  def attachments(%{data: data} = response, attachments), do: %{response | data: Map.put(data, :attachments, attachments)}
+  def attachments(%{data: data} = response, attachments),
+    do: %{response | data: Map.put(data, :attachments, attachments)}
 
   @doc """
   Sets the poll for a message response.
@@ -521,7 +536,9 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{flags: 66}}
   """
   @spec suppress_embeds(t()) :: t()
-  def suppress_embeds(%{data: %{flags: flags}} = response), do: flags(response, @suppress_embeds ||| flags)
+  def suppress_embeds(%{data: %{flags: flags}} = response),
+    do: flags(response, @suppress_embeds ||| flags)
+
   def suppress_embeds(response), do: flags(response, @suppress_embeds)
 
   @doc """
@@ -567,7 +584,9 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{flags: 4160}}
   """
   @spec suppress_notifications(t()) :: t()
-  def suppress_notifications(%{data: %{flags: flags}} = response), do: flags(response, @suppress_notifications ||| flags)
+  def suppress_notifications(%{data: %{flags: flags}} = response),
+    do: flags(response, @suppress_notifications ||| flags)
+
   def suppress_notifications(response), do: flags(response, @suppress_notifications)
 
   @doc """
@@ -590,7 +609,9 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 4, data: %{flags: 32832}}
   """
   @spec is_components_v2(t()) :: t()
-  def is_components_v2(%{data: %{flags: flags}} = response), do: flags(response, @is_components_v2 ||| flags)
+  def is_components_v2(%{data: %{flags: flags}} = response),
+    do: flags(response, @is_components_v2 ||| flags)
+
   def is_components_v2(response), do: flags(response, @is_components_v2)
 
   # Modal field setters
@@ -630,7 +651,8 @@ defmodule DiscordInteractions.InteractionResponse do
       %{type: 9, data: %{custom_id: "my_form_id"}}
   """
   @spec custom_id(t(), String.t()) :: t()
-  def custom_id(%{data: data} = response, custom_id), do: %{response | data: Map.put(data, :custom_id, custom_id)}
+  def custom_id(%{data: data} = response, custom_id),
+    do: %{response | data: Map.put(data, :custom_id, custom_id)}
 
   # Autocomplete result field setters
 
@@ -677,5 +699,6 @@ defmodule DiscordInteractions.InteractionResponse do
       %{name: "Red", value: "red", name_localizations: %{"es-ES" => "Rojo", "fr" => "Rouge"}}
   """
   @spec choice(String.t(), map(), any()) :: choice()
-  def choice(name, value, name_localizations), do: %{name: name, value: value, name_localizations: name_localizations}
+  def choice(name, value, name_localizations),
+    do: %{name: name, value: value, name_localizations: name_localizations}
 end

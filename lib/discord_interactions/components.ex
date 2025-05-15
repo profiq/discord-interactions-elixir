@@ -80,25 +80,33 @@ defmodule DiscordInteractions.Components do
 
   defmacrop required(component, key) do
     quote do
-      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), var!(opts)[unquote(key)]), else: unquote(component)
+      if var!(opts)[unquote(key)],
+        do: Map.put(unquote(component), unquote(key), var!(opts)[unquote(key)]),
+        else: unquote(component)
     end
   end
 
   defmacrop required(component, key, value) do
     quote do
-      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), unquote(value)), else: unquote(component)
+      if var!(opts)[unquote(key)],
+        do: Map.put(unquote(component), unquote(key), unquote(value)),
+        else: unquote(component)
     end
   end
 
   defmacrop optional(component, key) do
     quote do
-      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), var!(opts)[unquote(key)]), else: unquote(component)
+      if var!(opts)[unquote(key)],
+        do: Map.put(unquote(component), unquote(key), var!(opts)[unquote(key)]),
+        else: unquote(component)
     end
   end
 
   defmacrop optional(component, key, value) do
     quote do
-      if var!(opts)[unquote(key)], do: Map.put(unquote(component), unquote(key), unquote(value)), else: unquote(component)
+      if var!(opts)[unquote(key)],
+        do: Map.put(unquote(component), unquote(key), unquote(value)),
+        else: unquote(component)
     end
   end
 
@@ -131,7 +139,7 @@ defmodule DiscordInteractions.Components do
         ]
       )
   """
-  @spec action_row([id: integer(), components: [component()]]) :: component()
+  @spec action_row(id: integer(), components: [component()]) :: component()
   def action_row(opts) do
     %{type: @action_row}
     |> optional(:id)
@@ -180,7 +188,15 @@ defmodule DiscordInteractions.Components do
         sku_id: "123456789"
       )
   """
-  @spec button(id: integer(), style: atom(), label: String.t(), custom_id: String.t(), url: String.t(), emoji: emoji(), disabled: boolean()) :: component()
+  @spec button(
+          id: integer(),
+          style: atom(),
+          label: String.t(),
+          custom_id: String.t(),
+          url: String.t(),
+          emoji: emoji(),
+          disabled: boolean()
+        ) :: component()
   def button(opts) do
     %{type: @button}
     |> optional(:id)
@@ -229,7 +245,7 @@ defmodule DiscordInteractions.Components do
       # Create a custom emoji with ID
       DiscordInteractions.Components.emoji(name: "custom_emoji", id: "123456789", animated: true)
   """
-  @spec emoji([animated: boolean(), id: String.t(), name: String.t()]) :: emoji()
+  @spec emoji(animated: boolean(), id: String.t(), name: String.t()) :: emoji()
   def emoji(opts) do
     %{}
     |> optional(:animated)
@@ -262,7 +278,15 @@ defmodule DiscordInteractions.Components do
         max_values: 1
       )
   """
-  @spec string_select([id: integer(), custom_id: String.t(), options: [map()], placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
+  @spec string_select(
+          id: integer(),
+          custom_id: String.t(),
+          options: [map()],
+          placeholder: String.t(),
+          min_values: non_neg_integer(),
+          max_values: non_neg_integer(),
+          disabled: boolean()
+        ) :: component()
   def string_select(opts) do
     %{type: @string_select}
     |> optional(:id)
@@ -301,7 +325,13 @@ defmodule DiscordInteractions.Components do
         default: true
       )
   """
-  @spec select_option([label: String.t(), value: String.t(), description: String.t(), emoji: emoji(), default: boolean()]) :: map()
+  @spec select_option(
+          label: String.t(),
+          value: String.t(),
+          description: String.t(),
+          emoji: emoji(),
+          default: boolean()
+        ) :: map()
   def select_option(opts) do
     %{}
     |> required(:label)
@@ -344,12 +374,23 @@ defmodule DiscordInteractions.Components do
         placeholder: "Enter your feedback"
       )
   """
-  @spec text_input([id: integer(), custom_id: String.t(), style: atom(), label: String.t(), min_length: non_neg_integer(), max_length: non_neg_integer(), required: boolean(), value: String.t(), placeholder: String.t()]) :: component()
+  @spec text_input(
+          id: integer(),
+          custom_id: String.t(),
+          style: atom(),
+          label: String.t(),
+          min_length: non_neg_integer(),
+          max_length: non_neg_integer(),
+          required: boolean(),
+          value: String.t(),
+          placeholder: String.t()
+        ) :: component()
   def text_input(opts) do
-    style = case opts[:style] do
-      :short -> @short
-      :paragraph -> @paragraph
-    end
+    style =
+      case opts[:style] do
+        :short -> @short
+        :paragraph -> @paragraph
+      end
 
     %{type: @text_input}
     |> optional(:id)
@@ -392,7 +433,14 @@ defmodule DiscordInteractions.Components do
         max_values: 3
       )
   """
-  @spec user_select([id: integer(), custom_id: String.t(), placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
+  @spec user_select(
+          id: integer(),
+          custom_id: String.t(),
+          placeholder: String.t(),
+          min_values: non_neg_integer(),
+          max_values: non_neg_integer(),
+          disabled: boolean()
+        ) :: component()
   def user_select(opts) do
     %{type: @user_select}
     |> optional(:id)
@@ -433,7 +481,14 @@ defmodule DiscordInteractions.Components do
         max_values: 3
       )
   """
-  @spec role_select([id: integer(), custom_id: String.t(), placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
+  @spec role_select(
+          id: integer(),
+          custom_id: String.t(),
+          placeholder: String.t(),
+          min_values: non_neg_integer(),
+          max_values: non_neg_integer(),
+          disabled: boolean()
+        ) :: component()
   def role_select(opts) do
     %{type: @role_select}
     |> optional(:id)
@@ -477,7 +532,14 @@ defmodule DiscordInteractions.Components do
         max_values: 5
       )
   """
-  @spec mentionable_select([id: integer(), custom_id: String.t(), placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
+  @spec mentionable_select(
+          id: integer(),
+          custom_id: String.t(),
+          placeholder: String.t(),
+          min_values: non_neg_integer(),
+          max_values: non_neg_integer(),
+          disabled: boolean()
+        ) :: component()
   def mentionable_select(opts) do
     %{type: @mentionable_select}
     |> optional(:id)
@@ -509,7 +571,15 @@ defmodule DiscordInteractions.Components do
         channel_types: [:guild_text, :guild_voice] # Text and voice channels
       )
   """
-  @spec channel_select([id: integer(), custom_id: String.t(), channel_types: [atom()], placeholder: String.t(), min_values: non_neg_integer(), max_values: non_neg_integer(), disabled: boolean()]) :: component()
+  @spec channel_select(
+          id: integer(),
+          custom_id: String.t(),
+          channel_types: [atom()],
+          placeholder: String.t(),
+          min_values: non_neg_integer(),
+          max_values: non_neg_integer(),
+          disabled: boolean()
+        ) :: component()
   def channel_select(opts) do
     %{type: @channel_select}
     |> optional(:id)
@@ -579,7 +649,7 @@ defmodule DiscordInteractions.Components do
         )
       )
   """
-  @spec section([id: integer(), components: [component()], accessory: component()]) :: component()
+  @spec section(id: integer(), components: [component()], accessory: component()) :: component()
   def section(opts) do
     %{type: @section}
     |> optional(:id)
@@ -608,7 +678,7 @@ defmodule DiscordInteractions.Components do
         style: :heading
       )
   """
-  @spec text_display([id: integer(), content: String.t()]) :: component()
+  @spec text_display(id: integer(), content: String.t()) :: component()
   def text_display(opts) do
     %{type: @text_display}
     |> optional(:id)
@@ -643,7 +713,12 @@ defmodule DiscordInteractions.Components do
         spoiler: true
       )
   """
-  @spec thumbnail([id: integer(), media: String.t() | media(), description: String.t(), spoiler: boolean()]) :: component()
+  @spec thumbnail(
+          id: integer(),
+          media: String.t() | media(),
+          description: String.t(),
+          spoiler: boolean()
+        ) :: component()
   def thumbnail(opts) do
     %{type: @thumbnail}
     |> optional(:id)
@@ -678,7 +753,7 @@ defmodule DiscordInteractions.Components do
         ]
       )
   """
-  @spec media_gallery([id: integer(), items: [String.t() | media()]]) :: component()
+  @spec media_gallery(id: integer(), items: [String.t() | media()]) :: component()
   def media_gallery(opts) do
     %{type: @media_gallery}
     |> optional(:id)
@@ -706,7 +781,7 @@ defmodule DiscordInteractions.Components do
         spoiler: true
       )
   """
-  @spec file([id: integer(), file: String.t() | media(), spoiler: boolean()]) :: component()
+  @spec file(id: integer(), file: String.t() | media(), spoiler: boolean()) :: component()
   def file(opts) do
     %{type: @file_component}
     |> optional(:id)
@@ -730,7 +805,7 @@ defmodule DiscordInteractions.Components do
       # Create a separator with medium spacing
       DiscordInteractions.Components.separator(spacing: "medium")
   """
-  @spec separator([id: integer(), divider: boolean(), spacing: String.t()]) :: component()
+  @spec separator(id: integer(), divider: boolean(), spacing: String.t()) :: component()
   def separator(opts) do
     %{type: @separator}
     |> optional(:id)
@@ -801,7 +876,12 @@ defmodule DiscordInteractions.Components do
         accent_color: "#FF0000"
       )
   """
-  @spec container([id: integer(), components: [component()], accent_color: integer() | String.t(), spoiler: boolean()]) :: component()
+  @spec container(
+          id: integer(),
+          components: [component()],
+          accent_color: integer() | String.t(),
+          spoiler: boolean()
+        ) :: component()
   def container(opts) do
     %{type: @container}
     |> optional(:id)

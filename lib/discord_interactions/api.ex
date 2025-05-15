@@ -1,7 +1,11 @@
 defmodule DiscordInteractions.API do
   @behaviour DiscordInteractions.APIBehaviour
 
-  @api_module Application.compile_env(:discord_interactions, :api_impl, DiscordInteractions.APIImpl)
+  @api_module Application.compile_env(
+                :discord_interactions,
+                :api_impl,
+                DiscordInteractions.APIImpl
+              )
 
   @doc """
   Creates a new API client with the given token.

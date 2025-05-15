@@ -60,7 +60,11 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def update_global_command(%{client: client, application_id: application_id}, command_id, command) do
+  def update_global_command(
+        %{client: client, application_id: application_id},
+        command_id,
+        command
+      ) do
     case patch(client, "/applications/#{application_id}/commands/#{command_id}", command) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
@@ -116,8 +120,17 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def update_guild_command(%{client: client, application_id: application_id}, guild_id, command_id, command) do
-    case patch(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}", command) do
+  def update_guild_command(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id,
+        command
+      ) do
+    case patch(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}",
+           command
+         ) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -125,8 +138,15 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def delete_guild_command(%{client: client, application_id: application_id}, guild_id, command_id) do
-    case delete(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}") do
+  def delete_guild_command(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id
+      ) do
+    case delete(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}"
+         ) do
       {:ok, %{status: 204}} -> :ok
       {:ok, response} -> {:error, response}
       error -> error
@@ -134,7 +154,11 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def bulk_overwrite_guild_commands(%{client: client, application_id: application_id}, guild_id, commands) do
+  def bulk_overwrite_guild_commands(
+        %{client: client, application_id: application_id},
+        guild_id,
+        commands
+      ) do
     case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands", commands) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
@@ -154,8 +178,15 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def get_command_permissions(%{client: client, application_id: application_id}, guild_id, command_id) do
-    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions") do
+  def get_command_permissions(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id
+      ) do
+    case get(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions"
+         ) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -163,8 +194,17 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def update_command_permissions(%{client: client, application_id: application_id}, guild_id, command_id, permissions) do
-    case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions", permissions) do
+  def update_command_permissions(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id,
+        permissions
+      ) do
+    case put(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions",
+           permissions
+         ) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -172,8 +212,16 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def batch_update_command_permissions(%{client: client, application_id: application_id}, guild_id, permissions) do
-    case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/permissions", permissions) do
+  def batch_update_command_permissions(
+        %{client: client, application_id: application_id},
+        guild_id,
+        permissions
+      ) do
+    case put(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/permissions",
+           permissions
+         ) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -193,7 +241,10 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def get_original_interaction_response(%{client: client, application_id: application_id}, interaction_token) do
+  def get_original_interaction_response(
+        %{client: client, application_id: application_id},
+        interaction_token
+      ) do
     case get(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
@@ -202,8 +253,16 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def edit_original_interaction_response(%{client: client, application_id: application_id}, interaction_token, message) do
-    case patch(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original", message) do
+  def edit_original_interaction_response(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message
+      ) do
+    case patch(
+           client,
+           "/webhooks/#{application_id}/#{interaction_token}/messages/@original",
+           message
+         ) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -211,7 +270,10 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def delete_original_interaction_response(%{client: client, application_id: application_id}, interaction_token) do
+  def delete_original_interaction_response(
+        %{client: client, application_id: application_id},
+        interaction_token
+      ) do
     case delete(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original") do
       {:ok, %{status: 204}} -> :ok
       {:ok, response} -> {:error, response}
@@ -220,7 +282,11 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def create_followup_message(%{client: client, application_id: application_id}, interaction_token, message) do
+  def create_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message
+      ) do
     case post(client, "/webhooks/#{application_id}/#{interaction_token}", message) do
       {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
       {:ok, response} -> {:error, response}
@@ -229,7 +295,11 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def get_followup_message(%{client: client, application_id: application_id}, interaction_token, message_id) do
+  def get_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message_id
+      ) do
     case get(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}") do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
@@ -238,8 +308,17 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def edit_followup_message(%{client: client, application_id: application_id}, interaction_token, message_id, message) do
-    case patch(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}", message) do
+  def edit_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message_id,
+        message
+      ) do
+    case patch(
+           client,
+           "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}",
+           message
+         ) do
       {:ok, %{status: 200, body: body}} -> {:ok, body}
       {:ok, response} -> {:error, response}
       error -> error
@@ -247,7 +326,11 @@ defmodule DiscordInteractions.APIImpl do
   end
 
   @impl true
-  def delete_followup_message(%{client: client, application_id: application_id}, interaction_token, message_id) do
+  def delete_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message_id
+      ) do
     case delete(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}") do
       {:ok, %{status: 204}} -> :ok
       {:ok, response} -> {:error, response}
