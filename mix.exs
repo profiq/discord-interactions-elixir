@@ -32,7 +32,8 @@ defmodule DiscordInteractions.MixProject do
       {:plug, "~> 1.17"},
       {:ed25519, "~> 1.4"},
       {:jason, "~> 1.2"},
-      {:tesla, "~> 1.14"}
+      {:tesla, "~> 1.14"},
+      {:mimic, "~> 1.7", only: :test}
     ]
   end
 end
