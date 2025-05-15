@@ -7,7 +7,11 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
   alias DiscordInteractions.Plug.ValidateRequest
 
   setup do
-    Application.put_env(:discord_interactions, :public_key, "1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF")
+    Application.put_env(
+      :discord_interactions,
+      :public_key,
+      "1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF"
+    )
 
     Mimic.copy(Ed25519)
 
@@ -41,9 +45,9 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
         |> put_req_header("x-signature-timestamp", "timestamp")
 
       assert %{
-        status: 401,
-        halted: true
-      } = ValidateRequest.call(conn, %{})
+               status: 401,
+               halted: true
+             } = ValidateRequest.call(conn, %{})
     end
 
     test "returns 401 when signature header is missing", %{conn: conn, body: body} do
@@ -55,9 +59,9 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
         |> put_req_header("x-signature-timestamp", "timestamp")
 
       assert %{
-        status: 401,
-        halted: true
-      } = ValidateRequest.call(conn, %{})
+               status: 401,
+               halted: true
+             } = ValidateRequest.call(conn, %{})
     end
 
     test "returns 401 when timestamp header is missing", %{conn: conn, body: body} do
@@ -69,9 +73,9 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
         |> put_req_header("x-signature-ed25519", "0123456789ABCDEF")
 
       assert %{
-        status: 401,
-        halted: true
-      } = ValidateRequest.call(conn, %{})
+               status: 401,
+               halted: true
+             } = ValidateRequest.call(conn, %{})
     end
 
     test "returns 500 when public key is not configured", %{conn: conn, body: body} do
@@ -85,9 +89,9 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
         |> put_req_header("x-signature-timestamp", "timestamp")
 
       assert %{
-        status: 500,
-        halted: true
-      } = ValidateRequest.call(conn, %{})
+               status: 500,
+               halted: true
+             } = ValidateRequest.call(conn, %{})
     end
 
     test "returns 500 when raw body is missing", %{conn: conn} do
@@ -97,9 +101,9 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
         |> put_req_header("x-signature-timestamp", "timestamp")
 
       assert %{
-        status: 500,
-        halted: true
-      } = ValidateRequest.call(conn, %{})
+               status: 500,
+               halted: true
+             } = ValidateRequest.call(conn, %{})
     end
   end
 end
