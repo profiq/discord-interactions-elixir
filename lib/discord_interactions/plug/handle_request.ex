@@ -1,6 +1,5 @@
 defmodule DiscordInteractions.Plug.HandleRequest do
-  @moduledoc """
-  """
+  @moduledoc false
 
   @behaviour Plug
 
@@ -20,7 +19,7 @@ defmodule DiscordInteractions.Plug.HandleRequest do
   end
 
   def call(conn, _opts) do
-    case apply(conn.assigns[:discord_command_handler], :handle, [conn.body_params]) do
+    case conn.assigns[:discord_command_handler].handle(conn.body_params) do
       :error ->
         # send 500
         error(conn, :internal_server_error)

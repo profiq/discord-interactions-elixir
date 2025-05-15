@@ -1,4 +1,9 @@
 defmodule DiscordInteractions.CacheBodyReader do
+  @moduledoc """
+  Plug.Parsers body reader implementation which caches the request body
+  in `conn.assigns[:raw_body]`.
+  """
+
   @doc """
   `Plug.Conn.read_body/2` wrapper which stores the retrieved body
   in `conn.assigns[:raw_body]`.

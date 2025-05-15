@@ -1,4 +1,8 @@
 defmodule DiscordInteractions.Plug do
+  @moduledoc """
+  Plug for handling Discord interactions.
+  """
+
   use Plug.Builder, copy_opts_to_assign: :discord_command_handler
 
   import DiscordInteractions.Util

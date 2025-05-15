@@ -574,7 +574,7 @@ defmodule DiscordInteractions.Components do
   @spec channel_select(
           id: integer(),
           custom_id: String.t(),
-          channel_types: [atom()],
+          channel_types: [atom() | non_neg_integer()],
           placeholder: String.t(),
           min_values: non_neg_integer(),
           max_values: non_neg_integer(),
@@ -592,24 +592,20 @@ defmodule DiscordInteractions.Components do
     |> optional_bool(:disabled)
   end
 
-  defp channel_type(type) do
-    case type do
-      :guild_text -> @guild_text
-      :dm -> @dm
-      :guild_voice -> @guild_voice
-      :group_dm -> @group_dm
-      :guild_category -> @guild_category
-      :guild_announcement -> @guild_announcement
-      :announcement_thread -> @announcement_thread
-      :public_thread -> @public_thread
-      :private_thread -> @private_thread
-      :guild_stage_voice -> @guild_stage_voice
-      :guild_directory -> @guild_directory
-      :guild_forum -> @guild_forum
-      :guild_media -> @guild_media
-      _ -> @guild_text
-    end
-  end
+  defp channel_type(:guild_text), do: @guild_text
+  defp channel_type(:dm), do: @dm
+  defp channel_type(:guild_voice), do: @guild_voice
+  defp channel_type(:group_dm), do: @group_dm
+  defp channel_type(:guild_category), do: @guild_category
+  defp channel_type(:guild_announcement), do: @guild_announcement
+  defp channel_type(:announcement_thread), do: @announcement_thread
+  defp channel_type(:public_thread), do: @public_thread
+  defp channel_type(:private_thread), do: @private_thread
+  defp channel_type(:guild_stage_voice), do: @guild_stage_voice
+  defp channel_type(:guild_directory), do: @guild_directory
+  defp channel_type(:guild_forum), do: @guild_forum
+  defp channel_type(:guild_media), do: @guild_media
+  defp channel_type(type) when is_integer(type), do: type
 
   @doc """
   Creates a section component.

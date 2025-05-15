@@ -57,8 +57,8 @@ defmodule DiscordInteractions.InteractionResponse do
   # Message flags
   @suppress_embeds 2
   @ephemeral 64
-  @suppress_notifications 4096
-  @is_components_v2 32768
+  @suppress_notifications 4_096
+  @is_components_v2 32_768
 
   @typedoc """
   Represents a message response with optional fields.
@@ -601,18 +601,18 @@ defmodule DiscordInteractions.InteractionResponse do
   ## Examples
 
       iex> response = DiscordInteractions.InteractionResponse.channel_message_with_source()
-      iex> DiscordInteractions.InteractionResponse.is_components_v2(response)
+      iex> DiscordInteractions.InteractionResponse.use_components_v2(response)
       %{type: 4, data: %{flags: 32768}}
 
       iex> response = DiscordInteractions.InteractionResponse.channel_message_with_source(%{flags: 64})
-      iex> DiscordInteractions.InteractionResponse.is_components_v2(response)
+      iex> DiscordInteractions.InteractionResponse.use_components_v2(response)
       %{type: 4, data: %{flags: 32832}}
   """
-  @spec is_components_v2(t()) :: t()
-  def is_components_v2(%{data: %{flags: flags}} = response),
+  @spec use_components_v2(t()) :: t()
+  def use_components_v2(%{data: %{flags: flags}} = response),
     do: flags(response, @is_components_v2 ||| flags)
 
-  def is_components_v2(response), do: flags(response, @is_components_v2)
+  def use_components_v2(response), do: flags(response, @is_components_v2)
 
   # Modal field setters
 

@@ -1,4 +1,8 @@
 defmodule DiscordInteractions.API do
+  @moduledoc """
+  Discord API client
+  """
+
   @behaviour DiscordInteractions.APIBehaviour
 
   @api_module Application.compile_env(

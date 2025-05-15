@@ -33,7 +33,8 @@ defmodule DiscordInteractions.MixProject do
       {:ed25519, "~> 1.4"},
       {:jason, "~> 1.2"},
       {:tesla, "~> 1.14"},
-      {:mimic, "~> 1.7", only: :test}
+      {:mimic, "~> 1.7", only: :test},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 end

@@ -54,12 +54,12 @@ defmodule DiscordInteractions.EmbedTest do
   describe "color/2" do
     test "sets the color from integer" do
       embed = Embed.new()
-      assert %{color: 65280} = Embed.color(embed, 0x00FF00)
+      assert %{color: 0x00FF00} = Embed.color(embed, 0x00FF00)
     end
 
     test "sets the color from hex string" do
       embed = Embed.new()
-      assert %{color: 65280} = Embed.color(embed, "#00FF00")
+      assert %{color: 0x00FF00} = Embed.color(embed, "#00FF00")
     end
   end
 
@@ -280,7 +280,7 @@ defmodule DiscordInteractions.EmbedTest do
       assert %{
                title: "Hello, World!",
                description: "This is a description",
-               color: 65280
+               color: 0x00FF00
              } = embed
     end
   end

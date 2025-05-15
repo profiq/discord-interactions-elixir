@@ -219,19 +219,19 @@ defmodule DiscordInteractions.InteractionResponseTest do
 
     test "combines with existing flags" do
       response = InteractionResponse.channel_message_with_source(%{flags: 64})
-      assert %{data: %{flags: 4160}} = InteractionResponse.suppress_notifications(response)
+      assert %{data: %{flags: 4_160}} = InteractionResponse.suppress_notifications(response)
     end
   end
 
   describe "is_components_v2/1" do
     test "sets the components v2 flag on a response with no flags" do
       response = InteractionResponse.channel_message_with_source()
-      assert %{data: %{flags: 32768}} = InteractionResponse.is_components_v2(response)
+      assert %{data: %{flags: 32_768}} = InteractionResponse.use_components_v2(response)
     end
 
     test "combines with existing flags" do
       response = InteractionResponse.channel_message_with_source(%{flags: 64})
-      assert %{data: %{flags: 32832}} = InteractionResponse.is_components_v2(response)
+      assert %{data: %{flags: 32_832}} = InteractionResponse.use_components_v2(response)
     end
   end
 

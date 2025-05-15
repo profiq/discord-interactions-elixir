@@ -1,4 +1,6 @@
 defmodule DiscordInteractions.Util do
+  @moduledoc false
+
   import Plug.Conn
 
   alias Plug.Conn.Status
