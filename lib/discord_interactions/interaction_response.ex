@@ -19,6 +19,19 @@ defmodule DiscordInteractions.InteractionResponse do
                  |> DiscordInteractions.InteractionResponse.content("This is a secret message")
                  |> DiscordInteractions.InteractionResponse.ephemeral()
 
+      # Create a message with an embed
+      alias DiscordInteractions.Embed
+
+      embed = Embed.new()
+              |> Embed.title("Hello, World!")
+              |> Embed.description("This is an embed description")
+              |> Embed.color(0x00FF00)
+              |> Embed.add_field("Field 1", "Value 1", true)
+              |> Embed.add_field("Field 2", "Value 2", true)
+
+      response = DiscordInteractions.InteractionResponse.channel_message_with_source()
+                 |> DiscordInteractions.InteractionResponse.embeds([embed])
+
       # Create a modal response
       response = DiscordInteractions.InteractionResponse.modal()
                  |> DiscordInteractions.InteractionResponse.title("My Modal")
@@ -336,6 +349,7 @@ defmodule DiscordInteractions.InteractionResponse do
   Sets the embeds for a message response.
 
   Embeds are rich content blocks that can contain formatted text, images, and more.
+  Use the `DiscordInteractions.Embed` module to create embed objects.
 
   ## Parameters
   - `response`: The interaction response to modify
@@ -343,10 +357,38 @@ defmodule DiscordInteractions.InteractionResponse do
 
   ## Examples
 
+  Using a simple map for the embed:
+
       iex> response = DiscordInteractions.InteractionResponse.channel_message_with_source()
       iex> embed = %{title: "My Embed", description: "This is an embed", color: 0x00FF00}
       iex> DiscordInteractions.InteractionResponse.embeds(response, [embed])
       %{type: 4, data: %{embeds: [%{title: "My Embed", description: "This is an embed", color: 0x00FF00}]}}
+
+  Using the Embed module (recommended):
+
+      iex> alias DiscordInteractions.Embed
+      iex> response = DiscordInteractions.InteractionResponse.channel_message_with_source()
+      iex> embed = Embed.new()
+      ...>         |> Embed.title("My Embed")
+      ...>         |> Embed.description("This is an embed")
+      ...>         |> Embed.color(0x00FF00)
+      iex> DiscordInteractions.InteractionResponse.embeds(response, [embed])
+      %{type: 4, data: %{embeds: [%{title: "My Embed", description: "This is an embed", color: 0x00FF00}]}}
+
+  Creating a more complex embed:
+
+      iex> alias DiscordInteractions.Embed
+      iex> response = DiscordInteractions.InteractionResponse.channel_message_with_source()
+      iex> embed = Embed.new()
+      ...>         |> Embed.title("User Profile")
+      ...>         |> Embed.description("User information")
+      ...>         |> Embed.color("#5865F2")
+      ...>         |> Embed.thumbnail("https://example.com/avatar.png")
+      ...>         |> Embed.add_field("Username", "JohnDoe", true)
+      ...>         |> Embed.add_field("Status", "Online", true)
+      ...>         |> Embed.footer("Last updated", "https://example.com/icon.png")
+      iex> DiscordInteractions.InteractionResponse.embeds(response, [embed])
+      %{type: 4, data: %{embeds: [%{title: "User Profile", description: "User information", color: 5793266, thumbnail: %{url: "https://example.com/avatar.png"}, fields: [%{name: "Username", value: "JohnDoe", inline: true}, %{name: "Status", value: "Online", inline: true}], footer: %{text: "Last updated", icon_url: "https://example.com/icon.png"}}]}}
   """
   @spec embeds(t(), [map()]) :: t()
   def embeds(%{data: data} = response, embeds), do: %{response | data: Map.put(data, :embeds, embeds)}
@@ -566,7 +608,7 @@ defmodule DiscordInteractions.InteractionResponse do
 
       iex> response = DiscordInteractions.InteractionResponse.modal()
       iex> DiscordInteractions.InteractionResponse.title(response, "My Form")
-      %{type: 9, data: %{title: "My Form", custom_id: nil, components: []}}
+      %{type: 9, data: %{title: "My Form"}}
   """
   @spec title(t(), String.t()) :: t()
   def title(%{data: data} = response, title), do: %{response | data: Map.put(data, :title, title)}
@@ -585,7 +627,7 @@ defmodule DiscordInteractions.InteractionResponse do
 
       iex> response = DiscordInteractions.InteractionResponse.modal()
       iex> DiscordInteractions.InteractionResponse.custom_id(response, "my_form_id")
-      %{type: 9, data: %{custom_id: "my_form_id", title: nil, components: []}}
+      %{type: 9, data: %{custom_id: "my_form_id"}}
   """
   @spec custom_id(t(), String.t()) :: t()
   def custom_id(%{data: data} = response, custom_id), do: %{response | data: Map.put(data, :custom_id, custom_id)}
