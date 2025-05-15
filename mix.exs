@@ -7,7 +7,8 @@ defmodule DiscordInteractions.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -15,6 +16,13 @@ defmodule DiscordInteractions.MixProject do
   def application do
     [
       extra_applications: [:logger]
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/profiq/discord-interactions-elixir"}
     ]
   end
 
