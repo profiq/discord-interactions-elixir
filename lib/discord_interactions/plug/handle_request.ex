@@ -20,13 +20,9 @@ defmodule DiscordInteractions.Plug.HandleRequest do
 
   def call(conn, _opts) do
     case conn.assigns[:discord_command_handler].handle(conn.body_params) do
-      :error ->
-        # send 500
-        error(conn, :internal_server_error)
-
       :ok ->
-        # send 204
-        error(conn, :no_content)
+        # send 202
+        error(conn, :accepted)
 
       {:ok, response} ->
         resp_body =
@@ -37,6 +33,10 @@ defmodule DiscordInteractions.Plug.HandleRequest do
         |> put_resp_header("content-type", "application/json")
         |> send_resp()
         |> halt()
+
+      _ ->
+        # send 500
+        error(conn, :internal_server_error)
     end
   end
 end
