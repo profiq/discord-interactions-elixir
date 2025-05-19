@@ -8,7 +8,9 @@ defmodule DiscordInteractions.MixProject do
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      package: package()
+      description: description(),
+      package: package(),
+      source_url: "https://github.com/profiq/discord-interactions-elixir"
     ]
   end
 
@@ -17,6 +19,13 @@ defmodule DiscordInteractions.MixProject do
     [
       extra_applications: [:logger]
     ]
+  end
+
+  defp description do
+    """
+    An Elixir library for handling Discord interaction webhooks, which can be used to implement application commands
+    with simple chat responses, as well as more complex user interfaces using components.
+    """
   end
 
   defp package do
@@ -34,7 +43,8 @@ defmodule DiscordInteractions.MixProject do
       {:jason, "~> 1.2"},
       {:tesla, "~> 1.14"},
       {:mimic, "~> 1.7", only: :test},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
     ]
   end
 end

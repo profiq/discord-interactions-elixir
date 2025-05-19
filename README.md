@@ -23,3 +23,23 @@ end
 
 Documentation can be found at <https://hexdocs.pm/discord_interactions>.
 
+## Development
+
+### Publishing to Hex.pm
+
+This package is automatically published to [Hex.pm](https://hex.pm) when a new tag is pushed to the repository. The tag should follow the format `vX.Y.Z` (e.g., `v0.1.0`), and the version in the tag should match the version in `mix.exs`.
+
+To publish a new version:
+
+1. Update the version in `mix.exs`
+2. Commit your changes
+3. Create and push a new tag:
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+
+The GitHub Action will automatically run tests and publish the package to Hex.pm if all tests pass.
+
+**Note:** You need to set up the `HEX_API_KEY` secret in your GitHub repository settings. You can get your Hex.pm API key by running `mix hex.user key` or from your [Hex.pm dashboard](https://hex.pm/dashboard/keys).
+
