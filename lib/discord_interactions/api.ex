@@ -1,6 +1,6 @@
-defmodule DiscordInteractions.APIImpl do
+defmodule DiscordInteractions.API do
   @moduledoc """
-  Discord API client for managing application commands and their permissions.
+  Discord REST API client.
   """
 
   @type client :: term()

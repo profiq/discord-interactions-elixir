@@ -1,5 +1,7 @@
 defmodule DiscordInteractions.Plug.HandleRequest do
-  @moduledoc false
+  @moduledoc """
+  Handles Discord interaction requests after validation.
+  """
 
   @behaviour Plug
 
@@ -10,32 +12,34 @@ defmodule DiscordInteractions.Plug.HandleRequest do
 
   alias DiscordInteractions.InteractionResponse
 
+  @impl true
   def init(opts), do: opts
 
+  @impl true
   def call(%{body_params: %{"type" => 1}} = conn, _opts) do
     send_json(conn, InteractionResponse.pong())
   end
 
   def call(conn, _opts) do
-      case conn.assigns[:discord_command_handler].handle(conn.body_params) do
-        :ok ->
-          # send 202
-          error(conn, :accepted)
+    case conn.assigns[:discord_command_handler].handle(conn.body_params) do
+      :ok ->
+        # send 202
+        error(conn, :accepted)
 
-        {:ok, response} ->
-          send_json(conn, response)
+      {:ok, response} ->
+        send_json(conn, response)
 
-        other ->
-          Logger.error("Discord command handler returned unexpected value: #{inspect(other)}")
-          error(conn, :internal_server_error)
-      end
-    rescue
-      exception ->
-        Logger.error(
-          "Discord command handler crashed: #{inspect(exception)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
-        )
-
+      other ->
+        Logger.error("Discord command handler returned unexpected value: #{inspect(other)}")
         error(conn, :internal_server_error)
+    end
+  rescue
+    exception ->
+      Logger.error(
+        "Discord command handler crashed: #{inspect(exception)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+      )
+
+      error(conn, :internal_server_error)
   end
 
   defp send_json(conn, response) do

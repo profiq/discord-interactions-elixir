@@ -1,12 +1,27 @@
 defmodule DiscordInteractions.CacheBodyReader do
   @moduledoc """
-  Plug.Parsers body reader implementation which caches the request body
-  in `conn.assigns[:raw_body]`.
+  A body reader implementation for `Plug.Parsers` that caches the raw request body
+  in `conn.assigns[:raw_body]` for later use. The `DiscordInteractions.Plug.ValidateRequest`
+  plug uses the cached raw body to verify the request signature against Discord's security headers.
+
+  ## Usage
+
+  Configure this body reader in your endpoint or router:
+
+  ```elixir
+  plug Plug.Parsers,
+    parsers: [:urlencoded, :multipart, :json],
+    pass: ["*/*"],
+    json_decoder: Phoenix.json_library(),
+    body_reader: {DiscordInteractions.CacheBodyReader, :read_body, []}
+  ```
   """
 
   @doc """
-  `Plug.Conn.read_body/2` wrapper which stores the retrieved body
-  in `conn.assigns[:raw_body]`.
+  Reads and caches the request body.
+
+  This function wraps `Plug.Conn.read_body/2` and stores the retrieved body
+  in `conn.assigns[:raw_body]` as a list of binary chunks.
   """
   @spec read_body(Plug.Conn.t(), Keyword.t()) ::
           {:ok, binary(), Plug.Conn.t()} | {:more, binary(), Plug.Conn.t()} | {:error, term()}

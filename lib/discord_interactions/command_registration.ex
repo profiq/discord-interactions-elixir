@@ -1,17 +1,6 @@
 defmodule DiscordInteractions.CommandRegistration do
   @moduledoc """
-  Task for registering Discord commands.
-
   This module is responsible for registering both global and guild-specific commands with Discord.
-  It's designed to be added to your application's supervision tree to ensure commands are registered
-  when your application starts.
-
-  ## Features
-
-  - Registers global commands (available in all servers where your bot is installed)
-  - Registers guild-specific commands (available only in specific servers)
-  - Handles errors gracefully with detailed logging
-  - Provides feedback on registration success with command counts
 
   ## Usage
 
