@@ -437,6 +437,150 @@ defmodule DiscordInteractions do
     end
   end
 
+  @doc """
+  Adds an option to an application command.
+
+  ## Parameters
+  - `name` - The name of the option (used as the parameter name in Discord)
+  - `type` - The type of the option (atom or integer)
+  - `opts` - Additional option settings
+
+  ## Option Types
+  - `:sub_command` - A sub-command
+  - `:sub_command_group` - A group of sub-commands
+  - `:string` - A string value
+  - `:integer` - An integer value
+  - `:boolean` - A boolean value
+  - `:user` - A Discord user
+  - `:channel` - A Discord channel
+  - `:role` - A Discord role
+  - `:mentionable` - A mentionable entity (user, role, etc.)
+  - `:number` - A floating-point number
+  - `:attachment` - A file attachment
+
+  ## Additional Options
+  - `:description` - Description of the option (default: "")
+  - `:required` - Whether the option is required (default: false)
+  - `:choices` - List of choices for the option
+  - `:min_value` - Minimum value for integer/number options
+  - `:max_value` - Maximum value for integer/number options
+  - `:autocomplete` - Whether the option supports autocomplete (default: false)
+  - `:channel_types` - List of channel types for channel options
+
+  ## Examples
+
+  ```elixir
+  # Basic string option
+  option("message", :string, description: "The message to echo back", required: true)
+
+  # Integer option with min/max values
+  option("count", :integer,
+    description: "Number of times to repeat",
+    min_value: 1,
+    max_value: 10,
+    required: false
+  )
+
+  # String option with choices
+  option("color", :string,
+    description: "Choose a color",
+    choices: [
+      %{name: "Red", value: "red"},
+      %{name: "Green", value: "green"},
+      %{name: "Blue", value: "blue"}
+    ]
+  )
+
+  # Channel option with specific channel types
+  option("channel", :channel,
+    description: "Select a text channel",
+    channel_types: [:guild_text, :guild_announcement]  # Text and announcement channels
+  )
+
+  # String option with autocomplete
+  option("query", :string,
+    description: "Search term",
+    autocomplete: true
+  )
+  ```
+  """
+  defmacro option(name, type, opts \\ []) do
+    # Convert option type to integer
+    option_type = case type do
+      :sub_command -> @option_sub_command
+      :sub_command_group -> @option_sub_command_group
+      :string -> @option_string
+      :integer -> @option_integer
+      :boolean -> @option_boolean
+      :user -> @option_user
+      :channel -> @option_channel
+      :role -> @option_role
+      :mentionable -> @option_mentionable
+      :number -> @option_number
+      :attachment -> @option_attachment
+      _ when is_integer(type) -> type
+      _ -> raise "Invalid option type: #{inspect(type)}"
+    end
+
+    # Create the base option map
+    new_option = %{
+      name: name,
+      type: option_type,
+      description: Keyword.get(opts, :description, ""),
+      required: Keyword.get(opts, :required, false)
+    }
+
+    # Add optional fields if they are provided
+    new_option = if Keyword.has_key?(opts, :choices) do
+      Map.put(new_option, :choices, Keyword.get(opts, :choices))
+    else
+      new_option
+    end
+
+    new_option = if Keyword.has_key?(opts, :min_value) do
+      Map.put(new_option, :min_value, Keyword.get(opts, :min_value))
+    else
+      new_option
+    end
+
+    new_option = if Keyword.has_key?(opts, :max_value) do
+      Map.put(new_option, :max_value, Keyword.get(opts, :max_value))
+    else
+      new_option
+    end
+
+    new_option = if Keyword.has_key?(opts, :autocomplete) do
+      Map.put(new_option, :autocomplete, Keyword.get(opts, :autocomplete))
+    else
+      new_option
+    end
+
+    # Handle channel types with Util module
+    new_option = if Keyword.has_key?(opts, :channel_types) do
+      channel_types = Util.channel_types(Keyword.get(opts, :channel_types))
+      Map.put(new_option, :channel_types, channel_types)
+    else
+      new_option
+    end
+
+    # Return the quoted code that will be inserted
+    quote do
+      # Get the current options list or initialize an empty one
+      current_options = Map.get(var!(command).definition, :options, [])
+
+      # Update the command definition with the new option
+      # Append to the end of the list to maintain order
+      var!(command) = %{
+        var!(command)
+        | definition: Map.put(
+            var!(command).definition,
+            :options,
+            current_options ++ [unquote(Macro.escape(new_option))]
+          )
+      }
+    end
+  end
+
   defmacro __using__(_) do
     quote do
       @behaviour DiscordInteractions.CommandHandler

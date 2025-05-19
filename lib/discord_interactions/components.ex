@@ -63,20 +63,8 @@ defmodule DiscordInteractions.Components do
   @short 1
   @paragraph 2
 
-  # Channel types
-  @guild_text 0
-  @dm 1
-  @guild_voice 2
-  @group_dm 3
-  @guild_category 4
-  @guild_announcement 5
-  @announcement_thread 10
-  @public_thread 11
-  @private_thread 12
-  @guild_stage_voice 13
-  @guild_directory 14
-  @guild_forum 15
-  @guild_media 16
+  # Import channel type utilities
+  alias DiscordInteractions.Util
 
   defmacrop required(component, key) do
     quote do
@@ -584,7 +572,7 @@ defmodule DiscordInteractions.Components do
     %{type: @channel_select}
     |> optional(:id)
     |> required(:custom_id)
-    |> optional(:channel_types, Enum.map(opts[:channel_types], &channel_type/1))
+    |> optional(:channel_types, Util.channel_types(opts[:channel_types]))
     |> optional(:placeholder)
     |> optional(:default_values)
     |> required(:min_values)
@@ -592,20 +580,7 @@ defmodule DiscordInteractions.Components do
     |> optional_bool(:disabled)
   end
 
-  defp channel_type(:guild_text), do: @guild_text
-  defp channel_type(:dm), do: @dm
-  defp channel_type(:guild_voice), do: @guild_voice
-  defp channel_type(:group_dm), do: @group_dm
-  defp channel_type(:guild_category), do: @guild_category
-  defp channel_type(:guild_announcement), do: @guild_announcement
-  defp channel_type(:announcement_thread), do: @announcement_thread
-  defp channel_type(:public_thread), do: @public_thread
-  defp channel_type(:private_thread), do: @private_thread
-  defp channel_type(:guild_stage_voice), do: @guild_stage_voice
-  defp channel_type(:guild_directory), do: @guild_directory
-  defp channel_type(:guild_forum), do: @guild_forum
-  defp channel_type(:guild_media), do: @guild_media
-  defp channel_type(type) when is_integer(type), do: type
+
 
   @doc """
   Creates a section component.
