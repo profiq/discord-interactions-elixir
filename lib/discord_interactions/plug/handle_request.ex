@@ -17,7 +17,6 @@ defmodule DiscordInteractions.Plug.HandleRequest do
   end
 
   def call(conn, _opts) do
-    try do
       case conn.assigns[:discord_command_handler].handle(conn.body_params) do
         :ok ->
           # send 202
@@ -37,7 +36,6 @@ defmodule DiscordInteractions.Plug.HandleRequest do
         )
 
         error(conn, :internal_server_error)
-    end
   end
 
   defp send_json(conn, response) do

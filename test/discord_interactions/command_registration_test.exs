@@ -2,8 +2,8 @@ defmodule DiscordInteractions.CommandRegistrationTest do
   use ExUnit.Case, async: true
   use Mimic
 
-  alias DiscordInteractions.CommandRegistration
   alias DiscordInteractions.API
+  alias DiscordInteractions.CommandRegistration
 
   # Mock the API module for testing
   Mimic.copy(DiscordInteractions.API)

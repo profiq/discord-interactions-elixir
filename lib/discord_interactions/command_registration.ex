@@ -62,10 +62,8 @@ defmodule DiscordInteractions.CommandRegistration do
       )
 
     # Register both types of commands
-    with :ok <- register_global_commands(global_commands),
-         :ok <- register_all_guild_commands(guild_commands) do
-      :ok
-    end
+    register_global_commands(global_commands)
+    register_all_guild_commands(guild_commands)
   end
 
   def register_global_commands([]) do

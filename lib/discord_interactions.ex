@@ -1083,28 +1083,10 @@ defmodule DiscordInteractions do
   ```
   """
   defmacro option(name, type, opts \\ []) do
-    # Convert option type to integer
-    option_type =
-      case type do
-        :sub_command -> @option_sub_command
-        :sub_command_group -> @option_sub_command_group
-        :string -> @option_string
-        :integer -> @option_integer
-        :boolean -> @option_boolean
-        :user -> @option_user
-        :channel -> @option_channel
-        :role -> @option_role
-        :mentionable -> @option_mentionable
-        :number -> @option_number
-        :attachment -> @option_attachment
-        _ when is_integer(type) -> type
-        _ -> raise "Invalid option type: #{inspect(type)}"
-      end
-
     # Create the base option map
     new_option = %{
       name: name,
-      type: option_type,
+      type: option_type(type),
       description: Keyword.get(opts, :description, ""),
       required: Keyword.get(opts, :required, false)
     }
@@ -1138,7 +1120,6 @@ defmodule DiscordInteractions do
         new_option
       end
 
-    # Handle channel types with Util module
     new_option =
       if Keyword.has_key?(opts, :channel_types) do
         channel_types = Util.channel_types(Keyword.get(opts, :channel_types))
@@ -1163,6 +1144,24 @@ defmodule DiscordInteractions do
               current_options ++ [unquote(Macro.escape(new_option))]
             )
       }
+    end
+  end
+
+  defmacrop option_type(type) do
+    case type do
+      :sub_command -> @option_sub_command
+      :sub_command_group -> @option_sub_command_group
+      :string -> @option_string
+      :integer -> @option_integer
+      :boolean -> @option_boolean
+      :user -> @option_user
+      :channel -> @option_channel
+      :role -> @option_role
+      :mentionable -> @option_mentionable
+      :number -> @option_number
+      :attachment -> @option_attachment
+      _ when is_integer(type) -> type
+      _ -> raise "Invalid option type: #{inspect(type)}"
     end
   end
 
