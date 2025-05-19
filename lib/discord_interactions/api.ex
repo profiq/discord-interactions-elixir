@@ -1,15 +1,31 @@
-defmodule DiscordInteractions.API do
+defmodule DiscordInteractions.APIImpl do
   @moduledoc """
-  Discord API client
+  Discord API client for managing application commands and their permissions.
   """
 
-  @behaviour DiscordInteractions.APIBehaviour
+  @type client :: term()
+  @type application_id :: String.t()
+  @type guild_id :: String.t()
+  @type command_id :: String.t()
+  @type command :: map()
+  @type commands :: list(command())
+  @type permissions :: map()
+  @type interaction_response :: map()
+  @type interaction_id :: String.t()
+  @type interaction_token :: String.t()
+  @type interaction_callback_response :: map()
+  @type message :: map()
+  @type message_id :: String.t()
+  @type error :: {:error, any()}
 
-  @api_module Application.compile_env(
-                :discord_interactions,
-                :api_impl,
-                DiscordInteractions.APIImpl
-              )
+  use Tesla
+
+  @base_url "https://discord.com/api/v10"
+  @middleware [
+    Tesla.Middleware.JSON,
+    {Tesla.Middleware.Headers, [{"content-type", "application/json"}]}
+  ]
+  @adapter Tesla.Adapter.Httpc
 
   @doc """
   Creates a new API client with the given token.
@@ -18,8 +34,21 @@ defmodule DiscordInteractions.API do
 
       iex> client = DiscordInteractions.Client.new(application_id: "APP_ID", token: "BOT_TOKEN")
   """
-  @impl true
-  def new(opts), do: @api_module.new(opts)
+  @spec new(keyword()) :: client()
+  def new(opts) do
+    middleware =
+      [
+        {Tesla.Middleware.BaseUrl, @base_url},
+        {Tesla.Middleware.Headers, [{"authorization", "Bot #{opts[:token]}"}]}
+      ] ++ @middleware
+
+    adapter = opts[:adapter] || @adapter
+
+    %{
+      client: Tesla.client(middleware, adapter),
+      application_id: opts[:application_id]
+    }
+  end
 
   # Global Commands
 
@@ -30,9 +59,13 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, commands} = DiscordInteractions.Client.get_global_commands(client)
   """
-  @impl true
-  def get_global_commands(client) do
-    @api_module.get_global_commands(client)
+  @spec get_global_commands(client()) :: {:ok, commands()} | error()
+  def get_global_commands(%{client: client, application_id: application_id}) do
+    case get(client, "/applications/#{application_id}/commands") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -42,9 +75,13 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, command} = DiscordInteractions.Client.get_global_command(client, "CMD_ID")
   """
-  @impl true
-  def get_global_command(client, command_id) do
-    @api_module.get_global_command(client, command_id)
+  @spec get_global_command(client(), command_id()) :: {:ok, command()} | error()
+  def get_global_command(%{client: client, application_id: application_id}, command_id) do
+    case get(client, "/applications/#{application_id}/commands/#{command_id}") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -55,9 +92,13 @@ defmodule DiscordInteractions.API do
       iex> command = %{name: "test", description: "A test command", type: 1}
       iex> {:ok, created} = DiscordInteractions.Client.create_global_command(client, command)
   """
-  @impl true
-  def create_global_command(client, command) do
-    @api_module.create_global_command(client, command)
+  @spec create_global_command(client(), command()) :: {:ok, command()} | error()
+  def create_global_command(%{client: client, application_id: application_id}, command) do
+    case post(client, "/applications/#{application_id}/commands", command) do
+      {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -68,9 +109,17 @@ defmodule DiscordInteractions.API do
       iex> command = %{name: "test", description: "Updated description", type: 1}
       iex> {:ok, updated} = DiscordInteractions.Client.update_global_command(client, "CMD_ID", command)
   """
-  @impl true
-  def update_global_command(client, command_id, command) do
-    @api_module.update_global_command(client, command_id, command)
+  @spec update_global_command(client(), command_id(), command()) :: {:ok, command()} | error()
+  def update_global_command(
+        %{client: client, application_id: application_id},
+        command_id,
+        command
+      ) do
+    case patch(client, "/applications/#{application_id}/commands/#{command_id}", command) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -80,9 +129,13 @@ defmodule DiscordInteractions.API do
 
       iex> :ok = DiscordInteractions.Client.delete_global_command(client, "CMD_ID")
   """
-  @impl true
-  def delete_global_command(client, command_id) do
-    @api_module.delete_global_command(client, command_id)
+  @spec delete_global_command(client(), command_id()) :: :ok | error()
+  def delete_global_command(%{client: client, application_id: application_id}, command_id) do
+    case delete(client, "/applications/#{application_id}/commands/#{command_id}") do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -93,9 +146,13 @@ defmodule DiscordInteractions.API do
       iex> commands = [%{name: "cmd1", description: "Command 1"}, %{name: "cmd2", description: "Command 2"}]
       iex> {:ok, updated} = DiscordInteractions.Client.bulk_overwrite_global_commands(client, commands)
   """
-  @impl true
-  def bulk_overwrite_global_commands(client, commands) do
-    @api_module.bulk_overwrite_global_commands(client, commands)
+  @spec bulk_overwrite_global_commands(client(), commands()) :: {:ok, commands()} | error()
+  def bulk_overwrite_global_commands(%{client: client, application_id: application_id}, commands) do
+    case put(client, "/applications/#{application_id}/commands", commands) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   # Guild Commands
@@ -107,9 +164,13 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, commands} = DiscordInteractions.Client.get_guild_commands(client, "GUILD_ID")
   """
-  @impl true
-  def get_guild_commands(client, guild_id) do
-    @api_module.get_guild_commands(client, guild_id)
+  @spec get_guild_commands(client(), guild_id()) :: {:ok, commands()} | error()
+  def get_guild_commands(%{client: client, application_id: application_id}, guild_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -119,9 +180,13 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, command} = DiscordInteractions.Client.get_guild_command(client, "GUILD_ID", "CMD_ID")
   """
-  @impl true
-  def get_guild_command(client, guild_id, command_id) do
-    @api_module.get_guild_command(client, guild_id, command_id)
+  @spec get_guild_command(client(), guild_id(), command_id()) :: {:ok, command()} | error()
+  def get_guild_command(%{client: client, application_id: application_id}, guild_id, command_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -132,9 +197,13 @@ defmodule DiscordInteractions.API do
       iex> command = %{name: "test", description: "A test command", type: 1}
       iex> {:ok, created} = DiscordInteractions.Client.create_guild_command(client, "GUILD_ID", command)
   """
-  @impl true
-  def create_guild_command(client, guild_id, command) do
-    @api_module.create_guild_command(client, guild_id, command)
+  @spec create_guild_command(client(), guild_id(), command()) :: {:ok, command()} | error()
+  def create_guild_command(%{client: client, application_id: application_id}, guild_id, command) do
+    case post(client, "/applications/#{application_id}/guilds/#{guild_id}/commands", command) do
+      {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -145,9 +214,23 @@ defmodule DiscordInteractions.API do
       iex> command = %{name: "test", description: "Updated description", type: 1}
       iex> {:ok, updated} = DiscordInteractions.Client.update_guild_command(client, "GUILD_ID", "CMD_ID", command)
   """
-  @impl true
-  def update_guild_command(client, guild_id, command_id, command) do
-    @api_module.update_guild_command(client, guild_id, command_id, command)
+  @spec update_guild_command(client(), guild_id(), command_id(), command()) ::
+          {:ok, command()} | error()
+  def update_guild_command(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id,
+        command
+      ) do
+    case patch(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}",
+           command
+         ) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -157,9 +240,20 @@ defmodule DiscordInteractions.API do
 
       iex> :ok = DiscordInteractions.Client.delete_guild_command(client, "GUILD_ID", "CMD_ID")
   """
-  @impl true
-  def delete_guild_command(client, guild_id, command_id) do
-    @api_module.delete_guild_command(client, guild_id, command_id)
+  @spec delete_guild_command(client(), guild_id(), command_id()) :: :ok | error()
+  def delete_guild_command(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id
+      ) do
+    case delete(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}"
+         ) do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -170,9 +264,18 @@ defmodule DiscordInteractions.API do
       iex> commands = [%{name: "cmd1", description: "Command 1"}, %{name: "cmd2", description: "Command 2"}]
       iex> {:ok, updated} = DiscordInteractions.Client.bulk_overwrite_guild_commands(client, "GUILD_ID", commands)
   """
-  @impl true
-  def bulk_overwrite_guild_commands(client, guild_id, commands) do
-    @api_module.bulk_overwrite_guild_commands(client, guild_id, commands)
+  @spec bulk_overwrite_guild_commands(client(), guild_id(), commands()) ::
+          {:ok, commands()} | error()
+  def bulk_overwrite_guild_commands(
+        %{client: client, application_id: application_id},
+        guild_id,
+        commands
+      ) do
+    case put(client, "/applications/#{application_id}/guilds/#{guild_id}/commands", commands) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   # Command Permissions
@@ -184,9 +287,14 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, permissions} = DiscordInteractions.Client.get_guild_command_permissions(client, "GUILD_ID")
   """
-  @impl true
-  def get_guild_command_permissions(client, guild_id) do
-    @api_module.get_guild_command_permissions(client, guild_id)
+  @spec get_guild_command_permissions(client(), guild_id()) ::
+          {:ok, list(permissions())} | error()
+  def get_guild_command_permissions(%{client: client, application_id: application_id}, guild_id) do
+    case get(client, "/applications/#{application_id}/guilds/#{guild_id}/commands/permissions") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -196,9 +304,21 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, permissions} = DiscordInteractions.Client.get_command_permissions(client, "GUILD_ID", "CMD_ID")
   """
-  @impl true
-  def get_command_permissions(client, guild_id, command_id) do
-    @api_module.get_command_permissions(client, guild_id, command_id)
+  @spec get_command_permissions(client(), guild_id(), command_id()) ::
+          {:ok, permissions()} | error()
+  def get_command_permissions(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id
+      ) do
+    case get(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions"
+         ) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -209,9 +329,23 @@ defmodule DiscordInteractions.API do
       iex> permissions = %{permissions: [%{id: "ROLE_ID", type: 1, permission: true}]}
       iex> {:ok, updated} = DiscordInteractions.Client.update_command_permissions(client, "GUILD_ID", "CMD_ID", permissions)
   """
-  @impl true
-  def update_command_permissions(client, guild_id, command_id, permissions) do
-    @api_module.update_command_permissions(client, guild_id, command_id, permissions)
+  @spec update_command_permissions(client(), guild_id(), command_id(), permissions()) ::
+          {:ok, permissions()} | error()
+  def update_command_permissions(
+        %{client: client, application_id: application_id},
+        guild_id,
+        command_id,
+        permissions
+      ) do
+    case put(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/#{command_id}/permissions",
+           permissions
+         ) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -225,9 +359,22 @@ defmodule DiscordInteractions.API do
       ...> ]
       iex> {:ok, updated} = DiscordInteractions.Client.batch_update_command_permissions(client, "GUILD_ID", permissions)
   """
-  @impl true
-  def batch_update_command_permissions(client, guild_id, permissions) do
-    @api_module.batch_update_command_permissions(client, guild_id, permissions)
+  @spec batch_update_command_permissions(client(), guild_id(), list(permissions())) ::
+          {:ok, list(permissions())} | error()
+  def batch_update_command_permissions(
+        %{client: client, application_id: application_id},
+        guild_id,
+        permissions
+      ) do
+    case put(
+           client,
+           "/applications/#{application_id}/guilds/#{guild_id}/commands/permissions",
+           permissions
+         ) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   # Interaction Responses
@@ -240,9 +387,19 @@ defmodule DiscordInteractions.API do
       iex> response = %{type: 4, data: %{content: "Hello!"}}
       iex> :ok = DiscordInteractions.Client.create_interaction_response(client, "INTERACTION_ID", "INTERACTION_TOKEN", response)
   """
-  @impl true
-  def create_interaction_response(client, interaction_id, interaction_token, response) do
-    @api_module.create_interaction_response(client, interaction_id, interaction_token, response)
+  @spec create_interaction_response(
+          client(),
+          interaction_id(),
+          interaction_token(),
+          interaction_response()
+        ) :: :ok | {:ok, interaction_callback_response()} | error()
+  def create_interaction_response(%{client: client}, interaction_id, interaction_token, response) do
+    case post(client, "/interactions/#{interaction_id}/#{interaction_token}/callback", response) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -252,9 +409,17 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, message} = DiscordInteractions.Client.get_original_interaction_response(client, "INTERACTION_TOKEN")
   """
-  @impl true
-  def get_original_interaction_response(client, interaction_token) do
-    @api_module.get_original_interaction_response(client, interaction_token)
+  @spec get_original_interaction_response(client(), interaction_token()) ::
+          {:ok, message()} | error()
+  def get_original_interaction_response(
+        %{client: client, application_id: application_id},
+        interaction_token
+      ) do
+    case get(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -265,9 +430,22 @@ defmodule DiscordInteractions.API do
       iex> message = %{content: "Updated content"}
       iex> {:ok, updated} = DiscordInteractions.Client.edit_original_interaction_response(client, "INTERACTION_TOKEN", message)
   """
-  @impl true
-  def edit_original_interaction_response(client, interaction_token, message) do
-    @api_module.edit_original_interaction_response(client, interaction_token, message)
+  @spec edit_original_interaction_response(client(), interaction_token(), message()) ::
+          {:ok, message()} | error()
+  def edit_original_interaction_response(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message
+      ) do
+    case patch(
+           client,
+           "/webhooks/#{application_id}/#{interaction_token}/messages/@original",
+           message
+         ) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -277,9 +455,16 @@ defmodule DiscordInteractions.API do
 
       iex> :ok = DiscordInteractions.Client.delete_original_interaction_response(client, "INTERACTION_TOKEN")
   """
-  @impl true
-  def delete_original_interaction_response(client, interaction_token) do
-    @api_module.delete_original_interaction_response(client, interaction_token)
+  @spec delete_original_interaction_response(client(), interaction_token()) :: :ok | error()
+  def delete_original_interaction_response(
+        %{client: client, application_id: application_id},
+        interaction_token
+      ) do
+    case delete(client, "/webhooks/#{application_id}/#{interaction_token}/messages/@original") do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -290,9 +475,18 @@ defmodule DiscordInteractions.API do
       iex> message = %{content: "Followup message"}
       iex> {:ok, created} = DiscordInteractions.Client.create_followup_message(client, "INTERACTION_TOKEN", message)
   """
-  @impl true
-  def create_followup_message(client, interaction_token, message) do
-    @api_module.create_followup_message(client, interaction_token, message)
+  @spec create_followup_message(client(), interaction_token(), message()) ::
+          {:ok, message()} | error()
+  def create_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message
+      ) do
+    case post(client, "/webhooks/#{application_id}/#{interaction_token}", message) do
+      {:ok, %{status: status, body: body}} when status in [200, 201] -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -302,9 +496,18 @@ defmodule DiscordInteractions.API do
 
       iex> {:ok, message} = DiscordInteractions.Client.get_followup_message(client, "INTERACTION_TOKEN", "MESSAGE_ID")
   """
-  @impl true
-  def get_followup_message(client, interaction_token, message_id) do
-    @api_module.get_followup_message(client, interaction_token, message_id)
+  @spec get_followup_message(client(), interaction_token(), message_id()) ::
+          {:ok, message()} | error()
+  def get_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message_id
+      ) do
+    case get(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}") do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -315,9 +518,23 @@ defmodule DiscordInteractions.API do
       iex> message = %{content: "Updated followup"}
       iex> {:ok, updated} = DiscordInteractions.Client.edit_followup_message(client, "INTERACTION_TOKEN", "MESSAGE_ID", message)
   """
-  @impl true
-  def edit_followup_message(client, interaction_token, message_id, message) do
-    @api_module.edit_followup_message(client, interaction_token, message_id, message)
+  @spec edit_followup_message(client(), interaction_token(), message_id(), message()) ::
+          {:ok, message()} | error()
+  def edit_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message_id,
+        message
+      ) do
+    case patch(
+           client,
+           "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}",
+           message
+         ) do
+      {:ok, %{status: 200, body: body}} -> {:ok, body}
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 
   @doc """
@@ -327,8 +544,16 @@ defmodule DiscordInteractions.API do
 
       iex> :ok = DiscordInteractions.Client.delete_followup_message(client, "INTERACTION_TOKEN", "MESSAGE_ID")
   """
-  @impl true
-  def delete_followup_message(client, interaction_token, message_id) do
-    @api_module.delete_followup_message(client, interaction_token, message_id)
+  @spec delete_followup_message(client(), interaction_token(), message_id()) :: :ok | error()
+  def delete_followup_message(
+        %{client: client, application_id: application_id},
+        interaction_token,
+        message_id
+      ) do
+    case delete(client, "/webhooks/#{application_id}/#{interaction_token}/messages/#{message_id}") do
+      {:ok, %{status: 204}} -> :ok
+      {:ok, response} -> {:error, response}
+      error -> error
+    end
   end
 end
