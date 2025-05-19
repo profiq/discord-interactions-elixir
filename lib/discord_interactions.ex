@@ -671,8 +671,10 @@ defmodule DiscordInteractions do
         is_atom(type) ->
           Map.get(@command_types, type) ||
             raise "Invalid command type: #{inspect(type)}"
+
         is_integer(type) ->
           type
+
         true ->
           raise "Invalid command type: #{inspect(type)}"
       end
@@ -1158,7 +1160,7 @@ defmodule DiscordInteractions do
   end
 
   defp option_type(type) when is_integer(type), do: type
-  defp option_type(type), do: raise "Invalid option type: #{inspect(type)}"
+  defp option_type(type), do: raise("Invalid option type: #{inspect(type)}")
 
   defmacro __using__(_) do
     quote do
