@@ -1147,7 +1147,7 @@ defmodule DiscordInteractions do
     end
   end
 
-  defmacrop option_type(type) do
+  defp option_type(type) do
     case type do
       :sub_command -> @option_sub_command
       :sub_command_group -> @option_sub_command_group
