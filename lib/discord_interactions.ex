@@ -355,10 +355,16 @@ defmodule DiscordInteractions do
           modal_submit_handler: function() | nil
         }
 
+  # Interaction types
   @application_command 2
   @message_component 3
   @application_command_autocomplete 4
   @modal_submit 5
+
+  # Application command types
+  @chat_input 1
+  @user 2
+  @message 3
 
   # Application command option types
   @option_sub_command 1
@@ -390,9 +396,21 @@ defmodule DiscordInteractions do
 
     interactions do
       # Define commands and handlers here
-      application_command "hello" do
+
+      # Slash command (chat input)
+      application_command "hello", :chat_input do
         description("A friendly greeting command")
         handler(&hello_command/1)
+      end
+
+      # User context menu command
+      application_command "Get Avatar", :user do
+        handler(&get_avatar_command/1)
+      end
+
+      # Message context menu command
+      application_command "Translate", :message do
+        handler(&translate_message_command/1)
       end
 
       message_component_handler(&handle_component/1)
@@ -400,6 +418,14 @@ defmodule DiscordInteractions do
 
     # Implement handler functions here
     def hello_command(_interaction) do
+      # ...
+    end
+
+    def get_avatar_command(_interaction) do
+      # ...
+    end
+
+    def translate_message_command(_interaction) do
       # ...
     end
   end
@@ -430,27 +456,43 @@ defmodule DiscordInteractions do
 
   ## Parameters
   - `name` - The name of the command (used as the command name in Discord)
-  - `_opts` - Reserved for future use
+  - `type` - The type of command (`:chat_input`, `:user`, or `:message`), defaults to `:chat_input`
+  - `opts` - Additional options (reserved for future use)
   - `block` - A block containing command configuration
+
+  ## Command Types
+  - `:chat_input` - Slash commands that show up when a user types /
+  - `:user` - Commands that appear in the context menu for users
+  - `:message` - Commands that appear in the context menu for messages
 
   ## Example
 
   ```elixir
-  # Global command
-  application_command "hello" do
+  # Chat input command (slash command)
+  application_command "hello", :chat_input do
     description("A friendly greeting command")
     handler(&hello_command/1)
   end
 
+  # User context menu command
+  application_command "Get User Info", :user do
+    handler(&user_info_command/1)
+  end
+
+  # Message context menu command
+  application_command "Translate", :message do
+    handler(&translate_message_command/1)
+  end
+
   # Guild-specific command
-  application_command "admin" do
+  application_command "admin", :chat_input do
     description("Admin-only command")
     guild("123456789012345678")  # Specific to this guild
     handler(&admin_command/1)
   end
 
-  # Command with options
-  application_command "echo" do
+  # Command with options (only valid for chat_input type)
+  application_command "echo", :chat_input do
     description("Repeats your message")
 
     option("message", :string,
@@ -461,11 +503,26 @@ defmodule DiscordInteractions do
     handler(&echo_command/1)
   end
   ```
+
+  Note: Description and options are only valid for `:chat_input` commands. User and message
+  commands don't support descriptions or options.
   """
-  defmacro application_command(name, _opts \\ [], do: block) do
+  defmacro application_command(name, type \\ :chat_input, _opts \\ [], do: block) do
+    # Convert command type to integer
+    command_type = case type do
+      :chat_input -> @chat_input
+      :user -> @user
+      :message -> @message
+      _ when is_integer(type) -> type
+      _ -> raise "Invalid command type: #{inspect(type)}"
+    end
+
     quote do
       var!(command) = %{
-        definition: %{name: unquote(name)},
+        definition: %{
+          name: unquote(name),
+          type: unquote(command_type)
+        },
         handler: nil,
         autocomplete_handler: nil,
         guilds: []
