@@ -13,11 +13,33 @@ defmodule DiscordInteractions.CommandRegistration do
   end
 
   def register_commands(handler) do
-    # Only register global commands at this time
-    handler.init()
-    |> Map.get(:global_commands)
-    |> Enum.map(fn {_name, %{definition: definition}} -> definition end)
-    |> register_global_commands()
+    config = handler.init()
+
+    # Retrieve global commands
+    global_commands =
+      config
+      |> Map.get(:global_commands)
+      |> Enum.map(fn {_name, %{definition: definition}} -> definition end)
+
+    # Retrieve guild commands
+    guild_commands =
+      config
+      |> Map.get(:guild_commands)
+      |> Enum.group_by(
+        fn {{guild_id, _name}, _command} -> guild_id end,
+        fn {{_guild_id, _name}, %{definition: definition}} -> definition end
+      )
+
+    # Register both types of commands
+    with :ok <- register_global_commands(global_commands),
+         :ok <- register_all_guild_commands(guild_commands) do
+      :ok
+    end
+  end
+
+  def register_global_commands([]) do
+    Logger.info("No global commands to register")
+    :ok
   end
 
   def register_global_commands(commands) do
@@ -28,7 +50,7 @@ defmodule DiscordInteractions.CommandRegistration do
          client <- API.new(token: bot_token, application_id: application_id),
          {:response, {:ok, _response}} <-
            {:response, API.bulk_overwrite_global_commands(client, commands)} do
-      Logger.info("Successfully registered Discord commands")
+      Logger.info("Successfully registered #{length(commands)} global Discord commands")
       :ok
     else
       {:bot_token, _} ->
@@ -40,8 +62,60 @@ defmodule DiscordInteractions.CommandRegistration do
         raise "Discord application id is not configured"
 
       {:response, {:error, response}} ->
-        Logger.error("Failed to register commands: #{inspect(response)}")
-        raise "Failed to register commands"
+        Logger.error("Failed to register global commands: #{inspect(response)}")
+        raise "Failed to register global commands"
+    end
+  end
+
+  def register_all_guild_commands(guild_commands) when map_size(guild_commands) == 0 do
+    Logger.info("No guild commands to register")
+    :ok
+  end
+
+  def register_all_guild_commands(guild_commands) do
+    with {:bot_token, {:ok, bot_token}} <-
+           {:bot_token, Application.fetch_env(:discord_interactions, :bot_token)},
+         {:application_id, {:ok, application_id}} <-
+           {:application_id, Application.fetch_env(:discord_interactions, :application_id)} do
+
+      client = API.new(token: bot_token, application_id: application_id)
+
+      # Register commands for each guild
+      results = Enum.map(guild_commands, fn {guild_id, commands} ->
+        register_guild_command(client, guild_id, commands)
+      end)
+
+      # Check if any registration failed
+      if Enum.any?(results, fn result -> result != :ok end) do
+        Logger.error("Failed to register some guild commands")
+        raise "Failed to register some guild commands"
+      else
+        Logger.info("Successfully registered commands for #{map_size(guild_commands)} guilds")
+        :ok
+      end
+    else
+      {:bot_token, _} ->
+        Logger.error("Discord bot token is not configured")
+        raise "Discord bot token is not configured"
+
+      {:application_id, _} ->
+        Logger.error("Discord application ID is not configured")
+        raise "Discord application id is not configured"
+    end
+  end
+
+  def register_guild_command(_client, _guild_id, []) do
+    :ok
+  end
+
+  def register_guild_command(client, guild_id, commands) do
+    case API.bulk_overwrite_guild_commands(client, guild_id, commands) do
+      {:ok, _response} ->
+        Logger.info("Successfully registered #{length(commands)} commands for guild #{guild_id}")
+        :ok
+      {:error, response} ->
+        Logger.error("Failed to register commands for guild #{guild_id}: #{inspect(response)}")
+        {:error, response}
     end
   end
 end
