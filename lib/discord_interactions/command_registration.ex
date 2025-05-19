@@ -1,6 +1,37 @@
 defmodule DiscordInteractions.CommandRegistration do
   @moduledoc """
   Task for registering Discord commands.
+
+  This module is responsible for registering both global and guild-specific commands with Discord.
+  It's designed to be added to your application's supervision tree to ensure commands are registered
+  when your application starts.
+
+  ## Features
+
+  - Registers global commands (available in all servers where your bot is installed)
+  - Registers guild-specific commands (available only in specific servers)
+  - Handles errors gracefully with detailed logging
+  - Provides feedback on registration success with command counts
+
+  ## Usage
+
+  Add the CommandRegistration task to your application's supervision tree:
+
+  ```elixir
+  def start(_type, _args) do
+    children = [
+      # Other children...
+      YourAppWeb.Endpoint,
+      {DiscordInteractions.CommandRegistration, YourApp.Discord}
+    ]
+
+    opts = [strategy: :one_for_one, name: YourApp.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+  ```
+
+  The task will automatically register all commands defined in your handler module when your
+  application starts.
   """
 
   use Task, restart: :transient

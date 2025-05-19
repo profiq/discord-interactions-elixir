@@ -95,21 +95,76 @@ defmodule DiscordInteractions do
 
   ### Defining Commands
 
-  Use the DSL to define your commands in the `interactions` block. The library provides macros for common command properties, but you can also use the `properties/1` macro to access any Discord API feature, even those not explicitly implemented in the library:
+  Use the DSL to define your commands in the `interactions` block. The library provides macros for common command properties, but you can also use the `properties/1` macro to access any Discord API feature, even those not explicitly implemented in the library.
+
+  You can define both global commands (available in all servers where your bot is installed) and guild-specific commands (available only in specific servers). Guild commands are useful for testing, server-specific features, or commands that should only be available to certain communities. Guild commands update instantly, unlike global commands which can take up to an hour to propagate.
 
   ```elixir
   interactions do
-    # Global command
+    # Simple command without options
     application_command "hello" do
       description("A friendly greeting command")
       handler(&hello_command/1)
     end
 
-    # Guild-specific command
-    application_command "admin" do
-      description("Admin-only command")
-      guild("YOUR_GUILD_ID")  # Specific to this guild
-      handler(&admin_command/1)
+    # Command with options
+    application_command "echo" do
+      description("Repeats your message")
+
+      # Add a required string option
+      option("message", :string,
+        description: "The message to echo back",
+        required: true
+      )
+
+      handler(&echo_command/1)
+    end
+
+    # Command with multiple options of different types
+    application_command "profile" do
+      description("Set your profile information")
+
+      option("name", :string,
+        description: "Your display name",
+        required: true
+      )
+
+      option("age", :integer,
+        description: "Your age",
+        min_value: 13,
+        max_value: 120
+      )
+
+      option("favorite_color", :string,
+        description: "Your favorite color",
+        choices: [
+          %{name: "Red", value: "red"},
+          %{name: "Green", value: "green"},
+          %{name: "Blue", value: "blue"}
+        ]
+      )
+
+      handler(&profile_command/1)
+    end
+
+    # User context menu command (appears when right-clicking a user)
+    application_command "View Profile", :user do
+      # User commands don't need a description
+      handler(&view_profile_command/1)
+    end
+
+    # Message context menu command (appears when right-clicking a message)
+    application_command "Translate", :message do
+      # Message commands don't need a description
+      handler(&translate_message_command/1)
+    end
+
+    # Guild-specific command (only available in specific servers)
+    application_command "test" do
+      description("Test command for development")
+      guild("123456789012345678")  # Available in this guild
+      guild("876543210987654321")  # And also in this guild
+      handler(&test_command/1)
     end
 
     # Handle component interactions (buttons, select menus)
@@ -122,37 +177,133 @@ defmodule DiscordInteractions do
 
   ### Implementing Handler Functions
 
+  Handler functions receive the raw Discord interaction object and should return a response. The interaction object contains all the data sent by Discord, including command options, user information, and more.
+
   Implement the handler functions referenced in your command definitions using the `DiscordInteractions.InteractionResponse` module to create responses:
 
   ```elixir
   alias DiscordInteractions.InteractionResponse
 
-  # Command handler
-  def hello_command(_interaction) do
+  # Simple command handler
+  def hello_command(interaction) do
+    # Access user information from the interaction
+    user = get_in(interaction, ["member", "user", "username"])
+
     response = InteractionResponse.channel_message_with_source()
-               |> InteractionResponse.content("Hello, world!")
+               |> InteractionResponse.content("Hello, " <> user)
+
+    {:ok, response}
+  end
+
+  # Command handler with a single option
+  def echo_command(interaction) do
+    # Extract option values from the interaction
+    options = get_in(interaction, ["data", "options"])
+
+    # Find the value of the "message" option
+    message = Enum.find_value(options, "", fn opt ->
+      if opt["name"] == "message", do: opt["value"], else: nil
+    end)
+
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("Echo: " <> message)
+
+    {:ok, response}
+  end
+
+  # Command handler with multiple options
+  def profile_command(interaction) do
+    # Extract all options from the interaction
+    options = get_in(interaction, ["data", "options"])
+
+    # Extract each option value
+    name = Enum.find_value(options, "", fn opt ->
+      if opt["name"] == "name", do: opt["value"], else: nil
+    end)
+
+    # Integer options are returned as numbers
+    age = Enum.find_value(options, nil, fn opt ->
+      if opt["name"] == "age", do: opt["value"], else: nil
+    end)
+
+    # Options with choices return the value, not the name
+    favorite_color = Enum.find_value(options, nil, fn opt ->
+      if opt["name"] == "favorite_color", do: opt["value"], else: nil
+    end)
+
+    # Build a response with all the profile information
+    age_text = if age, do: Integer.to_string(age), else: "not specified"
+    color_text = if favorite_color, do: favorite_color, else: "not specified"
+
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("Profile set!\nName: " <> name <>
+                                             "\nAge: " <> age_text <>
+                                             "\nFavorite Color: " <> color_text)
+
+    {:ok, response}
+  end
+
+  # User context menu command handler
+  def view_profile_command(interaction) do
+    # For user commands, the target user ID is in the data.target_id field
+    user_id = get_in(interaction, ["data", "target_id"])
+
+    # You can access information about the user who triggered the command
+    commander_name = get_in(interaction, ["member", "user", "username"])
+
+    # Create a response with information about the user
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content(commander_name <> " is viewing the profile of user ID: " <> user_id <>
+                                             "\n\nIn a real application, you would fetch and display user information here.")
+
+    {:ok, response}
+  end
+
+  # Message context menu command handler
+  def translate_message_command(interaction) do
+    # For message commands, the target message ID is in the data.target_id field
+    message_id = get_in(interaction, ["data", "target_id"])
+
+    # In a real application, you would fetch the message content and translate it
+    # For this example, we'll just acknowledge that we received the command
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("Translating message ID: " <> message_id <>
+                                             "\n\nIn a real application, you would fetch the message content and translate it.")
+
+    {:ok, response}
+  end
+
+  # Handler for a command available in multiple guilds
+  def test_command(interaction) do
+    # Get guild information
+    guild_id = get_in(interaction, ["guild_id"])
+    user = get_in(interaction, ["member", "user", "username"])
+
+    # Guild commands are useful for testing features before making them global
+    # They update instantly, unlike global commands which can take up to an hour
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("Test command executed by " <> user <> " in guild " <> guild_id <> "!\n" <>
+                                             "Guild commands are perfect for testing and server-specific features.")
 
     {:ok, response}
   end
 
   # Component handler with pattern matching on custom_id
-  def handle_component(%{"data" => %{"custom_id" => "button_1"}} = _interaction) do
+  def handle_component(%{"data" => %{"custom_id" => "button_1"}} = interaction) do
+    # Access user information from the interaction
+    user = get_in(interaction, ["member", "user", "username"])
+
     response = InteractionResponse.channel_message_with_source()
-               |> InteractionResponse.content("You clicked button 1!")
+               |> InteractionResponse.content(user <> " clicked button 1!")
 
     {:ok, response}
   end
 
-  def handle_component(%{"data" => %{"custom_id" => "button_2"}} = _interaction) do
+  def handle_component(%{"data" => %{"custom_id" => "button_2"}} = interaction) do
     response = InteractionResponse.channel_message_with_source()
                |> InteractionResponse.content("You clicked the danger button!")
 
     {:ok, response}
-  end
-
-  # Fallback for unhandled custom_ids
-  def handle_component(_interaction) do
-    :error
   end
   ```
 
@@ -196,6 +347,8 @@ defmodule DiscordInteractions do
     {:ok, response}
   end
   ```
+
+
 
   ## Advanced Usage
 
