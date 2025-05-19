@@ -57,7 +57,7 @@ defmodule DiscordInteractions.Util do
   def channel_type(:guild_forum), do: @guild_forum
   def channel_type(:guild_media), do: @guild_media
   def channel_type(type) when is_integer(type), do: type
-  def channel_type(type), do: raise "Invalid channel type: #{inspect(type)}"
+  def channel_type(type), do: raise("Invalid channel type: #{inspect(type)}")
 
   @doc """
   Converts a list of channel type atoms or integers to their corresponding Discord API channel type integers.
@@ -74,5 +74,6 @@ defmodule DiscordInteractions.Util do
   def channel_types(types) when is_list(types) do
     Enum.map(types, &channel_type/1)
   end
+
   def channel_types(nil), do: nil
 end

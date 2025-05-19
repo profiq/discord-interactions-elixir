@@ -108,13 +108,13 @@ defmodule DiscordInteractions.CommandRegistration do
            {:bot_token, Application.fetch_env(:discord_interactions, :bot_token)},
          {:application_id, {:ok, application_id}} <-
            {:application_id, Application.fetch_env(:discord_interactions, :application_id)} do
-
       client = API.new(token: bot_token, application_id: application_id)
 
       # Register commands for each guild
-      results = Enum.map(guild_commands, fn {guild_id, commands} ->
-        register_guild_command(client, guild_id, commands)
-      end)
+      results =
+        Enum.map(guild_commands, fn {guild_id, commands} ->
+          register_guild_command(client, guild_id, commands)
+        end)
 
       # Check if any registration failed
       if Enum.any?(results, fn result -> result != :ok end) do
@@ -144,6 +144,7 @@ defmodule DiscordInteractions.CommandRegistration do
       {:ok, _response} ->
         Logger.info("Successfully registered #{length(commands)} commands for guild #{guild_id}")
         :ok
+
       {:error, response} ->
         Logger.error("Failed to register commands for guild #{guild_id}: #{inspect(response)}")
         {:error, response}

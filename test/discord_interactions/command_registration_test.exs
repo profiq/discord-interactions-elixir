@@ -164,7 +164,6 @@ defmodule DiscordInteractions.CommandRegistrationTest do
       client: client,
       global_commands: global_commands
     } do
-
       # Mock API.new to return our test client
       expect(API, :new, fn _opts -> client end)
 

@@ -662,13 +662,14 @@ defmodule DiscordInteractions do
   """
   defmacro application_command(name, type \\ :chat_input, _opts \\ [], do: block) do
     # Convert command type to integer
-    command_type = case type do
-      :chat_input -> @chat_input
-      :user -> @user
-      :message -> @message
-      _ when is_integer(type) -> type
-      _ -> raise "Invalid command type: #{inspect(type)}"
-    end
+    command_type =
+      case type do
+        :chat_input -> @chat_input
+        :user -> @user
+        :message -> @message
+        _ when is_integer(type) -> type
+        _ -> raise "Invalid command type: #{inspect(type)}"
+      end
 
     quote do
       var!(command) = %{
@@ -1083,21 +1084,22 @@ defmodule DiscordInteractions do
   """
   defmacro option(name, type, opts \\ []) do
     # Convert option type to integer
-    option_type = case type do
-      :sub_command -> @option_sub_command
-      :sub_command_group -> @option_sub_command_group
-      :string -> @option_string
-      :integer -> @option_integer
-      :boolean -> @option_boolean
-      :user -> @option_user
-      :channel -> @option_channel
-      :role -> @option_role
-      :mentionable -> @option_mentionable
-      :number -> @option_number
-      :attachment -> @option_attachment
-      _ when is_integer(type) -> type
-      _ -> raise "Invalid option type: #{inspect(type)}"
-    end
+    option_type =
+      case type do
+        :sub_command -> @option_sub_command
+        :sub_command_group -> @option_sub_command_group
+        :string -> @option_string
+        :integer -> @option_integer
+        :boolean -> @option_boolean
+        :user -> @option_user
+        :channel -> @option_channel
+        :role -> @option_role
+        :mentionable -> @option_mentionable
+        :number -> @option_number
+        :attachment -> @option_attachment
+        _ when is_integer(type) -> type
+        _ -> raise "Invalid option type: #{inspect(type)}"
+      end
 
     # Create the base option map
     new_option = %{
@@ -1108,37 +1110,42 @@ defmodule DiscordInteractions do
     }
 
     # Add optional fields if they are provided
-    new_option = if Keyword.has_key?(opts, :choices) do
-      Map.put(new_option, :choices, Keyword.get(opts, :choices))
-    else
-      new_option
-    end
+    new_option =
+      if Keyword.has_key?(opts, :choices) do
+        Map.put(new_option, :choices, Keyword.get(opts, :choices))
+      else
+        new_option
+      end
 
-    new_option = if Keyword.has_key?(opts, :min_value) do
-      Map.put(new_option, :min_value, Keyword.get(opts, :min_value))
-    else
-      new_option
-    end
+    new_option =
+      if Keyword.has_key?(opts, :min_value) do
+        Map.put(new_option, :min_value, Keyword.get(opts, :min_value))
+      else
+        new_option
+      end
 
-    new_option = if Keyword.has_key?(opts, :max_value) do
-      Map.put(new_option, :max_value, Keyword.get(opts, :max_value))
-    else
-      new_option
-    end
+    new_option =
+      if Keyword.has_key?(opts, :max_value) do
+        Map.put(new_option, :max_value, Keyword.get(opts, :max_value))
+      else
+        new_option
+      end
 
-    new_option = if Keyword.has_key?(opts, :autocomplete) do
-      Map.put(new_option, :autocomplete, Keyword.get(opts, :autocomplete))
-    else
-      new_option
-    end
+    new_option =
+      if Keyword.has_key?(opts, :autocomplete) do
+        Map.put(new_option, :autocomplete, Keyword.get(opts, :autocomplete))
+      else
+        new_option
+      end
 
     # Handle channel types with Util module
-    new_option = if Keyword.has_key?(opts, :channel_types) do
-      channel_types = Util.channel_types(Keyword.get(opts, :channel_types))
-      Map.put(new_option, :channel_types, channel_types)
-    else
-      new_option
-    end
+    new_option =
+      if Keyword.has_key?(opts, :channel_types) do
+        channel_types = Util.channel_types(Keyword.get(opts, :channel_types))
+        Map.put(new_option, :channel_types, channel_types)
+      else
+        new_option
+      end
 
     # Return the quoted code that will be inserted
     quote do
@@ -1149,11 +1156,12 @@ defmodule DiscordInteractions do
       # Append to the end of the list to maintain order
       var!(command) = %{
         var!(command)
-        | definition: Map.put(
-            var!(command).definition,
-            :options,
-            current_options ++ [unquote(Macro.escape(new_option))]
-          )
+        | definition:
+            Map.put(
+              var!(command).definition,
+              :options,
+              current_options ++ [unquote(Macro.escape(new_option))]
+            )
       }
     end
   end

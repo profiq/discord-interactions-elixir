@@ -30,7 +30,12 @@ defmodule DiscordInteractions.Plug.HandleRequestTest do
       # Define handler for this specific test
       defmodule SuccessHandler do
         alias DiscordInteractions.InteractionResponse
-        def handle(_interaction), do: {:ok, InteractionResponse.channel_message_with_source() |> InteractionResponse.content("Success")}
+
+        def handle(_interaction),
+          do:
+            {:ok,
+             InteractionResponse.channel_message_with_source()
+             |> InteractionResponse.content("Success")}
       end
 
       conn =
@@ -83,7 +88,7 @@ defmodule DiscordInteractions.Plug.HandleRequestTest do
     test "handles exceptions in command handlers", %{conn: conn} do
       # Define handler for this specific test
       defmodule CrashHandler do
-        def handle(_interaction), do: raise "Test exception"
+        def handle(_interaction), do: raise("Test exception")
       end
 
       conn =

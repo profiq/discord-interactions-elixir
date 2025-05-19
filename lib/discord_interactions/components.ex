@@ -580,8 +580,6 @@ defmodule DiscordInteractions.Components do
     |> optional_bool(:disabled)
   end
 
-
-
   @doc """
   Creates a section component.
 

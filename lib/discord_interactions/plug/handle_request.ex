@@ -32,7 +32,10 @@ defmodule DiscordInteractions.Plug.HandleRequest do
       end
     rescue
       exception ->
-        Logger.error("Discord command handler crashed: #{inspect(exception)}\n#{Exception.format_stacktrace(__STACKTRACE__)}")
+        Logger.error(
+          "Discord command handler crashed: #{inspect(exception)}\n#{Exception.format_stacktrace(__STACKTRACE__)}"
+        )
+
         error(conn, :internal_server_error)
     end
   end
