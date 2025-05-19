@@ -515,22 +515,26 @@ defmodule DiscordInteractions do
   @modal_submit 5
 
   # Application command types
-  @chat_input 1
-  @user 2
-  @message 3
+  @command_types %{
+    chat_input: 1,
+    user: 2,
+    message: 3
+  }
 
   # Application command option types
-  @option_sub_command 1
-  @option_sub_command_group 2
-  @option_string 3
-  @option_integer 4
-  @option_boolean 5
-  @option_user 6
-  @option_channel 7
-  @option_role 8
-  @option_mentionable 9
-  @option_number 10
-  @option_attachment 11
+  @option_types %{
+    sub_command: 1,
+    sub_command_group: 2,
+    string: 3,
+    integer: 4,
+    boolean: 5,
+    user: 6,
+    channel: 7,
+    role: 8,
+    mentionable: 9,
+    number: 10,
+    attachment: 11
+  }
 
   # Import utilities
   alias DiscordInteractions.Util
@@ -663,12 +667,14 @@ defmodule DiscordInteractions do
   defmacro application_command(name, type \\ :chat_input, _opts \\ [], do: block) do
     # Convert command type to integer
     command_type =
-      case type do
-        :chat_input -> @chat_input
-        :user -> @user
-        :message -> @message
-        _ when is_integer(type) -> type
-        _ -> raise "Invalid command type: #{inspect(type)}"
+      cond do
+        is_atom(type) ->
+          Map.get(@command_types, type) ||
+            raise "Invalid command type: #{inspect(type)}"
+        is_integer(type) ->
+          type
+        true ->
+          raise "Invalid command type: #{inspect(type)}"
       end
 
     quote do
@@ -1147,23 +1153,12 @@ defmodule DiscordInteractions do
     end
   end
 
-  defp option_type(type) do
-    case type do
-      :sub_command -> @option_sub_command
-      :sub_command_group -> @option_sub_command_group
-      :string -> @option_string
-      :integer -> @option_integer
-      :boolean -> @option_boolean
-      :user -> @option_user
-      :channel -> @option_channel
-      :role -> @option_role
-      :mentionable -> @option_mentionable
-      :number -> @option_number
-      :attachment -> @option_attachment
-      _ when is_integer(type) -> type
-      _ -> raise "Invalid option type: #{inspect(type)}"
-    end
+  defp option_type(type) when is_atom(type) do
+    Map.get(@option_types, type) || raise "Invalid option type: #{inspect(type)}"
   end
+
+  defp option_type(type) when is_integer(type), do: type
+  defp option_type(type), do: raise "Invalid option type: #{inspect(type)}"
 
   defmacro __using__(_) do
     quote do
