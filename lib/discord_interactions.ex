@@ -156,6 +156,13 @@ defmodule DiscordInteractions do
   end
   ```
 
+  ### Response Types
+
+  Handler functions should return one of:
+
+  - `{:ok, response}` - Successful response with data.
+  - `:ok` - Sends a `202 Accepted` response to the initial request. Use this if you want to send the interaction response manually using the Discord API. Note that the three second timeout still applies in this case.
+
   ### Using Helper Modules for Responses
 
   The library provides helper modules to construct responses more easily. Use the `DiscordInteractions.InteractionResponse` module together with the `DiscordInteractions.Components` module:
@@ -305,49 +312,6 @@ defmodule DiscordInteractions do
     # Return autocomplete suggestions
     response = InteractionResponse.application_command_autocomplete_result(suggestions)
     {:ok, response}
-  end
-  ```
-
-  ### Response Types
-
-  Handler functions should return one of:
-
-  - `{:ok, response}` - Successful response with data.
-  - `:ok` - Sends a 202 Accepted response to the initial request. This is useful when you need to perform async work before sending a response.
-
-  Example of using a deferred response with Task for async processing:
-
-  ```elixir
-  alias DiscordInteractions.InteractionResponse
-  alias DiscordInteractions.API
-
-  def deferred_command(interaction) do
-    # First, acknowledge the interaction with an empty response
-    # This gives us time to process without the user waiting
-
-    # Start a Task to handle the async work
-    Task.start(fn ->
-      # Simulate some work that takes time
-      :timer.sleep(2000)
-
-      # Create API client
-      client = API.new(
-        token: Application.get_env(:discord_interactions, :bot_token),
-        application_id: Application.get_env(:discord_interactions, :application_id)
-      )
-
-      interaction_token = interaction["token"]
-
-      # Send a follow-up message after the work is complete
-      API.create_followup_message(
-        client,
-        interaction_token,
-        %{content: "This is a follow-up response after processing!"}
-      )
-    end)
-
-    # Return :ok to acknowledge the interaction immediately
-    :ok
   end
   ```
   """
