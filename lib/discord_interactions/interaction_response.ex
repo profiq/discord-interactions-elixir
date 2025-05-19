@@ -94,8 +94,8 @@ defmodule DiscordInteractions.InteractionResponse do
   """
   @type choice :: %{
           optional(:name_localizations) => map(),
-          name: String.t(),
-          value: any()
+          optional(:name) => String.t(),
+          optional(:value) => any()
         }
 
   @typedoc """
@@ -105,7 +105,7 @@ defmodule DiscordInteractions.InteractionResponse do
   - `choices`: Array of choice objects for autocomplete suggestions
   """
   @type autocomplete :: %{
-          choices: [choice()]
+          optional(:choices) => [choice()]
         }
 
   @typedoc """
@@ -117,9 +117,9 @@ defmodule DiscordInteractions.InteractionResponse do
   - `components`: Array of components to include in the modal
   """
   @type modal :: %{
-          title: String.t(),
-          custom_id: String.t(),
-          components: [Components.component()]
+          optional(:title) => String.t(),
+          optional(:custom_id) => String.t(),
+          optional(:components) => [Components.component()]
         }
 
   @typedoc """
@@ -130,8 +130,8 @@ defmodule DiscordInteractions.InteractionResponse do
   - `data`: The data for the response, which varies based on the type
   """
   @type t :: %{
-          type: integer(),
-          data: message() | autocomplete() | modal() | %{}
+          optional(:data) => message() | autocomplete() | modal(),
+          type: integer()
         }
 
   @doc """
@@ -143,10 +143,10 @@ defmodule DiscordInteractions.InteractionResponse do
   ## Examples
 
       iex> DiscordInteractions.InteractionResponse.pong()
-      %{type: 1, data: %{}}
+      %{type: 1}
   """
   @spec pong() :: t()
-  def pong, do: %{type: @pong, data: %{}}
+  def pong, do: %{type: @pong}
 
   @doc """
   Creates a response that shows a message in the channel.
@@ -295,10 +295,10 @@ defmodule DiscordInteractions.InteractionResponse do
   ## Examples
 
       iex> DiscordInteractions.InteractionResponse.premium_required()
-      %{type: 10, data: %{}}
+      %{type: 10}
   """
   @spec premium_required() :: t()
-  def premium_required, do: %{type: @premium_required, data: %{}}
+  def premium_required, do: %{type: @premium_required}
 
   @doc """
   Creates a response that launches an activity.
@@ -308,10 +308,10 @@ defmodule DiscordInteractions.InteractionResponse do
   ## Examples
 
       iex> DiscordInteractions.InteractionResponse.launch_activity()
-      %{type: 12, data: %{}}
+      %{type: 12}
   """
   @spec launch_activity() :: t()
-  def launch_activity, do: %{type: @launch_activity, data: %{}}
+  def launch_activity, do: %{type: @launch_activity}
 
   # Message response field setters
 

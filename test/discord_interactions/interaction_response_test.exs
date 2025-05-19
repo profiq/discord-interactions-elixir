@@ -6,7 +6,7 @@ defmodule DiscordInteractions.InteractionResponseTest do
 
   describe "pong/0" do
     test "creates a pong response" do
-      assert %{type: 1, data: %{}} = InteractionResponse.pong()
+      assert %{type: 1} = InteractionResponse.pong()
     end
   end
 
@@ -77,13 +77,13 @@ defmodule DiscordInteractions.InteractionResponseTest do
 
   describe "premium_required/0" do
     test "creates a premium required response" do
-      assert %{type: 10, data: %{}} = InteractionResponse.premium_required()
+      assert %{type: 10} = InteractionResponse.premium_required()
     end
   end
 
   describe "launch_activity/0" do
     test "creates a launch activity response" do
-      assert %{type: 12, data: %{}} = InteractionResponse.launch_activity()
+      assert %{type: 12} = InteractionResponse.launch_activity()
     end
   end
 
@@ -214,7 +214,7 @@ defmodule DiscordInteractions.InteractionResponseTest do
   describe "suppress_notifications/1" do
     test "sets the suppress notifications flag on a response with no flags" do
       response = InteractionResponse.channel_message_with_source()
-      assert %{data: %{flags: 4096}} = InteractionResponse.suppress_notifications(response)
+      assert %{data: %{flags: 4_096}} = InteractionResponse.suppress_notifications(response)
     end
 
     test "combines with existing flags" do
@@ -223,7 +223,7 @@ defmodule DiscordInteractions.InteractionResponseTest do
     end
   end
 
-  describe "is_components_v2/1" do
+  describe "use_components_v2/1" do
     test "sets the components v2 flag on a response with no flags" do
       response = InteractionResponse.channel_message_with_source()
       assert %{data: %{flags: 32_768}} = InteractionResponse.use_components_v2(response)
