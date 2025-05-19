@@ -10,10 +10,10 @@ defmodule DiscordInteractions.Plug.ValidateRequest do
 
   require Logger
 
-  @spec init(Plug.opts()) :: Plug.opts()
+  @impl true
   def init(opts), do: opts
 
-  @spec call(Plug.Conn.t(), Plug.opts()) :: Plug.Conn.t()
+  @impl true
   def call(conn, _opts) do
     with {:key, public_key} when public_key != nil <-
            {:key, Application.get_env(:discord_interactions, :public_key)},
