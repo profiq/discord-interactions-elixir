@@ -205,7 +205,36 @@ defmodule DiscordInteractions do
 
   The `properties/1` macro is particularly useful for accessing Discord API features that aren't explicitly implemented in the library. You can use it to define any command option or property supported by Discord's API, even if there isn't a specific macro for it in this library.
 
-  You can define complex commands with options:
+  You can define complex commands with options using the `option` macro:
+
+  ```elixir
+  application_command "echo" do
+    description("Repeats your message")
+
+    # Add a required string option
+    option("message", :string,
+      description: "The message to echo back",
+      required: true
+    )
+
+    handler(&echo_command/1)
+  end
+  ```
+
+  The `option` macro supports all Discord option types:
+  - `:sub_command` - A sub-command
+  - `:sub_command_group` - A group of sub-commands
+  - `:string` - A string value
+  - `:integer` - An integer value
+  - `:boolean` - A boolean value
+  - `:user` - A Discord user
+  - `:channel` - A Discord channel
+  - `:role` - A Discord role
+  - `:mentionable` - A mentionable entity (user, role, etc.)
+  - `:number` - A floating-point number
+  - `:attachment` - A file attachment
+
+  You can also use the raw `properties` macro for more complex scenarios:
 
   ```elixir
   application_command "echo" do
@@ -256,17 +285,11 @@ defmodule DiscordInteractions do
   application_command "search" do
     description("Search for items")
 
-    # Define command options with autocomplete
-    properties(%{
-      options: [
-        %{
-          type: 3,  # STRING
-          name: "query",
-          description: "Search term",
-          autocomplete: true  # Enable autocomplete for this option
-        }
-      ]
-    })
+    # Define command option with autocomplete
+    option("query", :string,
+      description: "Search term",
+      autocomplete: true
+    )
 
     # Set the main command handler
     handler(&search_command/1)
@@ -337,6 +360,51 @@ defmodule DiscordInteractions do
   @application_command_autocomplete 4
   @modal_submit 5
 
+  # Application command option types
+  @option_sub_command 1
+  @option_sub_command_group 2
+  @option_string 3
+  @option_integer 4
+  @option_boolean 5
+  @option_user 6
+  @option_channel 7
+  @option_role 8
+  @option_mentionable 9
+  @option_number 10
+  @option_attachment 11
+
+  # Import utilities
+  alias DiscordInteractions.Util
+
+  @doc """
+  Defines a block for declaring Discord interactions.
+
+  This macro is the entry point for defining commands, handlers, and other interaction-related
+  configurations. It should be used within a module that uses `DiscordInteractions`.
+
+  ## Example
+
+  ```elixir
+  defmodule MyApp.Discord do
+    use DiscordInteractions
+
+    interactions do
+      # Define commands and handlers here
+      application_command "hello" do
+        description("A friendly greeting command")
+        handler(&hello_command/1)
+      end
+
+      message_component_handler(&handle_component/1)
+    end
+
+    # Implement handler functions here
+    def hello_command(_interaction) do
+      # ...
+    end
+  end
+  ```
+  """
   defmacro interactions(do: block) do
     quote do
       @spec init() :: DiscordInteractions.config()
@@ -354,6 +422,46 @@ defmodule DiscordInteractions do
     end
   end
 
+  @doc """
+  Defines a Discord application command.
+
+  This macro creates a new application command with the given name and allows you to configure
+  it using other macros within its block.
+
+  ## Parameters
+  - `name` - The name of the command (used as the command name in Discord)
+  - `_opts` - Reserved for future use
+  - `block` - A block containing command configuration
+
+  ## Example
+
+  ```elixir
+  # Global command
+  application_command "hello" do
+    description("A friendly greeting command")
+    handler(&hello_command/1)
+  end
+
+  # Guild-specific command
+  application_command "admin" do
+    description("Admin-only command")
+    guild("123456789012345678")  # Specific to this guild
+    handler(&admin_command/1)
+  end
+
+  # Command with options
+  application_command "echo" do
+    description("Repeats your message")
+
+    option("message", :string,
+      description: "The message to echo back",
+      required: true
+    )
+
+    handler(&echo_command/1)
+  end
+  ```
+  """
   defmacro application_command(name, _opts \\ [], do: block) do
     quote do
       var!(command) = %{
@@ -386,6 +494,27 @@ defmodule DiscordInteractions do
     end
   end
 
+  @doc """
+  Sets the name of a command.
+
+  This macro is used within an `application_command` block to set or change the command's name.
+
+  ## Parameters
+  - `name` - The name of the command
+
+  ## Example
+
+  ```elixir
+  application_command "initial_name" do
+    # Override the name
+    name("actual_name")
+    description("A command with a different name")
+    handler(&my_command/1)
+  end
+  ```
+
+  Note: In most cases, it's simpler to set the name directly in the `application_command` macro.
+  """
   defmacro name(name) do
     quote do
       var!(command) = %{
@@ -395,6 +524,24 @@ defmodule DiscordInteractions do
     end
   end
 
+  @doc """
+  Sets the description of a command.
+
+  This macro is used within an `application_command` block to set the command's description,
+  which is displayed in the Discord UI.
+
+  ## Parameters
+  - `description` - The description text for the command
+
+  ## Example
+
+  ```elixir
+  application_command "hello" do
+    description("A friendly greeting command")
+    handler(&hello_command/1)
+  end
+  ```
+  """
   defmacro description(description) do
     quote do
       var!(command) = %{
@@ -404,6 +551,33 @@ defmodule DiscordInteractions do
     end
   end
 
+  @doc """
+  Sets raw properties for a command.
+
+  This macro allows you to directly set properties on a command using the raw Discord API format.
+  It's useful for accessing Discord API features that aren't explicitly implemented in the library.
+
+  ## Parameters
+  - `properties` - A map of properties to merge with the command definition
+
+  ## Example
+
+  ```elixir
+  application_command "advanced" do
+    description("An advanced command")
+
+    # Set raw properties following Discord's API documentation
+    properties(%{
+      type: 1,  # CHAT_INPUT
+      default_member_permissions: "8",  # Administrator permission
+      dm_permission: false,  # Disable in DMs
+      nsfw: true  # Mark as NSFW
+    })
+
+    handler(&advanced_command/1)
+  end
+  ```
+  """
   defmacro properties(properties) do
     quote do
       var!(command) = %{
@@ -413,27 +587,220 @@ defmodule DiscordInteractions do
     end
   end
 
+  @doc """
+  Specifies that a command should be registered to a specific guild (server).
+
+  By default, commands are registered globally across all servers. This macro restricts
+  a command to only be available in the specified guild.
+
+  ## Parameters
+  - `guild` - The Discord guild (server) ID where the command should be available
+
+  ## Example
+
+  ```elixir
+  application_command "admin" do
+    description("Admin-only command")
+    guild("123456789012345678")  # Specific to this guild
+    handler(&admin_command/1)
+  end
+  ```
+
+  You can also make a command available in multiple guilds by calling this macro multiple times:
+
+  ```elixir
+  application_command "test" do
+    description("Test command")
+    guild("123456789012345678")  # Available in this guild
+    guild("876543210987654321")  # And also in this guild
+    handler(&test_command/1)
+  end
+  ```
+  """
   defmacro guild(guild) do
     quote do
       var!(command) = %{var!(command) | guilds: [unquote(guild) | var!(command).guilds]}
     end
   end
 
+  @doc """
+  Sets the handler function for a command.
+
+  This macro specifies which function should be called when a user invokes the command.
+  The handler function receives the interaction data and should return a response.
+
+  ## Parameters
+  - `handler` - Function reference to handle the command
+
+  ## Example
+
+  ```elixir
+  application_command "hello" do
+    description("A friendly greeting command")
+    handler(&hello_command/1)
+  end
+
+  def hello_command(interaction) do
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("Hello, world!")
+
+    {:ok, response}
+  end
+  ```
+
+  Handler functions should return one of:
+  - `{:ok, response}` - Successful response with data
+  - `:ok` - Success with no response data (202 Accepted)
+  """
   defmacro handler(handler) do
     quote do
       var!(command) = %{var!(command) | handler: unquote(handler)}
     end
   end
 
+  @doc """
+  Sets the handler function for message component interactions.
+
+  This macro specifies which function should be called when a user interacts with
+  message components like buttons or select menus.
+
+  ## Parameters
+  - `handler` - Function reference to handle component interactions
+
+  ## Example
+
+  ```elixir
+  interactions do
+    # Define commands...
+
+    # Set the component handler
+    message_component_handler(&handle_component/1)
+  end
+
+  # Component handler with pattern matching on custom_id
+  def handle_component(%{"data" => %{"custom_id" => "button_1"}} = interaction) do
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("You clicked button 1!")
+
+    {:ok, response}
+  end
+
+  def handle_component(%{"data" => %{"custom_id" => "button_2"}} = interaction) do
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("You clicked button 2!")
+
+    {:ok, response}
+  end
+
+  # Fallback for unhandled custom_ids
+  def handle_component(_interaction) do
+    :error
+  end
+  ```
+  """
   defmacro message_component_handler(handler) do
     quote do
       var!(interactions) = %{var!(interactions) | message_component_handler: unquote(handler)}
     end
   end
 
+  @doc """
+  Sets the handler function for modal submissions.
+
+  This macro specifies which function should be called when a user submits a modal form.
+
+  ## Parameters
+  - `handler` - Function reference to handle modal submissions
+
+  ## Example
+
+  ```elixir
+  interactions do
+    # Define commands...
+
+    # Set the modal submission handler
+    modal_submit_handler(&handle_modal/1)
+  end
+
+  # Modal handler with pattern matching on custom_id
+  def handle_modal(%{"data" => %{"custom_id" => "feedback_form"}} = interaction) do
+    # Extract values from the modal components
+    components = get_in(interaction, ["data", "components"])
+
+    feedback = Enum.find_value(components, "", fn component ->
+      text_inputs = component["components"]
+
+      Enum.find_value(text_inputs, "", fn input ->
+        if input["custom_id"] == "feedback_input", do: input["value"], else: nil
+      end)
+    end)
+
+    # Create a response
+    response = InteractionResponse.channel_message_with_source()
+               |> InteractionResponse.content("Thank you for your feedback: \#{feedback}")
+
+    {:ok, response}
+  end
+
+  # Fallback for unhandled modal submissions
+  def handle_modal(_interaction) do
+    :error
+  end
+  ```
+  """
   defmacro modal_submit_handler(handler) do
     quote do
       var!(interactions) = %{var!(interactions) | modal_submit_handler: unquote(handler)}
+    end
+  end
+
+  @doc """
+  Sets the autocomplete handler function for a command.
+
+  This handler will be called when a user is typing in an autocomplete option field.
+  The handler should return suggestions based on the current input.
+
+  ## Parameters
+  - `handler` - Function reference to handle autocomplete requests
+
+  ## Example
+
+  ```elixir
+  application_command "search" do
+    description("Search for items")
+
+    option("query", :string,
+      description: "Search term",
+      autocomplete: true
+    )
+
+    handler(&search_command/1)
+    autocomplete_handler(&search_autocomplete/1)
+  end
+
+  def search_autocomplete(interaction) do
+    # Get the current input value
+    focused_option = Enum.find(
+      interaction["data"]["options"],
+      fn opt -> opt["focused"] == true end
+    )
+    current_input = focused_option["value"]
+
+    # Generate suggestions based on the current input
+    suggestions = [
+      InteractionResponse.choice("Option 1", "option1"),
+      InteractionResponse.choice("Option 2", "option2")
+    ]
+
+    # Return autocomplete suggestions
+    response = InteractionResponse.application_command_autocomplete_result(suggestions)
+    {:ok, response}
+  end
+  ```
+  """
+  defmacro autocomplete_handler(handler) do
+    quote do
+      var!(command) = %{var!(command) | autocomplete_handler: unquote(handler)}
     end
   end
 
