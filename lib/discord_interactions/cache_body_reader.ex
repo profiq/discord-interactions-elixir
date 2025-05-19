@@ -1,8 +1,8 @@
 defmodule DiscordInteractions.CacheBodyReader do
   @moduledoc """
-  A body reader implementation for `Plug.Parsers` that caches the raw request body
-  in `conn.assigns[:raw_body]` for later use. The `DiscordInteractions.Plug.ValidateRequest`
-  plug uses the cached raw body to verify the request signature against Discord's security headers.
+  A body reader implementation for `Plug.Parsers` that caches the raw request body for later use.
+
+  The `DiscordInteractions.Plug.ValidateRequest` plug uses the cached raw body to verify the request signature against Discord's security headers.
 
   ## Usage
 
