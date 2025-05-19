@@ -45,6 +45,7 @@ jobs:
 
       - name: Verify package version matches tag
         run: |
+          mix compile
           PACKAGE_VERSION=$(mix eval 'IO.puts Mix.Project.config()[:version]')
           TAG_VERSION=${{ steps.get_version.outputs.VERSION }}
           echo "Package version: $PACKAGE_VERSION"
