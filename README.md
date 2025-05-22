@@ -1,4 +1,9 @@
-# DiscordInteractions
+# Discord Interactions
+
+[![Version](https://img.shields.io/hexpm/v/discord_interactions.svg)](https://hex.pm/packages/discord_interactions)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/discord_interactions/)
+[![Download](https://img.shields.io/hexpm/dt/discord_interactions.svg)](https://hex.pm/packages/discord_interactions)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 An [Elixir](http://elixir-lang.org/) library for handling Discord interaction webhooks, which can be used to implement application commands
 with simple chat responses, as well as more complex user interfaces using [components](https://discord.com/developers/docs/components/overview).
