@@ -172,9 +172,10 @@ defmodule ExampleWeb.Discord do
   """
   def color(%{"data" => %{"options" => options}}) do
     # Extract the color value from options
-    color_value = Enum.find_value(options, "", fn opt ->
-      if opt["name"] == "color", do: opt["value"]
-    end)
+    color_value =
+      Enum.find_value(options, "", fn opt ->
+        if opt["name"] == "color", do: opt["value"]
+      end)
 
     # Convert color name to hex if it's a named color
     {color_name, color_hex} = get_color_info(color_value)
@@ -199,59 +200,62 @@ defmodule ExampleWeb.Discord do
   """
   def components(_interaction) do
     # Create action row with buttons
-    buttons_row = action_row(
-      components: [
-        button(
-          style: :primary,
-          label: "Primary Button",
-          custom_id: "primary_button"
-        ),
-        button(
-          style: :success,
-          label: "Success Button",
-          custom_id: "success_button"
-        ),
-        button(
-          style: :danger,
-          label: "Danger Button",
-          custom_id: "danger_button"
-        ),
-        button(
-          style: :link,
-          label: "GitHub",
-          url: "https://github.com"
-        )
-      ]
-    )
+    buttons_row =
+      action_row(
+        components: [
+          button(
+            style: :primary,
+            label: "Primary Button",
+            custom_id: "primary_button"
+          ),
+          button(
+            style: :success,
+            label: "Success Button",
+            custom_id: "success_button"
+          ),
+          button(
+            style: :danger,
+            label: "Danger Button",
+            custom_id: "danger_button"
+          ),
+          button(
+            style: :link,
+            label: "GitHub",
+            url: "https://github.com"
+          )
+        ]
+      )
 
     # Create action row with a select menu
-    select_row = action_row(
-      components: [
-        string_select(
-          custom_id: "color_select",
-          placeholder: "Select a color",
-          options: [
-            select_option(label: "Red", value: "red", description: "The color red"),
-            select_option(label: "Green", value: "green", description: "The color green"),
-            select_option(label: "Blue", value: "blue", description: "The color blue")
-          ],
-          min_values: 1,
-          max_values: 1
-        )
-      ]
-    )
+    select_row =
+      action_row(
+        components: [
+          string_select(
+            custom_id: "color_select",
+            placeholder: "Select a color",
+            options: [
+              select_option(label: "Red", value: "red", description: "The color red"),
+              select_option(label: "Green", value: "green", description: "The color green"),
+              select_option(label: "Blue", value: "blue", description: "The color blue")
+            ],
+            min_values: 1,
+            max_values: 1
+          )
+        ]
+      )
 
     # Create action row with user select
-    user_select_row = action_row(
-      components: [
-        user_select(
-          custom_id: "user_select",
-          placeholder: "Select a user",
-          min_values: 1,
-          max_values: 1
-        )
-      ]
-    )
+    user_select_row =
+      action_row(
+        components: [
+          user_select(
+            custom_id: "user_select",
+            placeholder: "Select a user",
+            min_values: 1,
+            max_values: 1
+          )
+        ]
+      )
 
     response =
       InteractionResponse.channel_message_with_source()
@@ -265,7 +269,9 @@ defmodule ExampleWeb.Discord do
   Handler for the Count Characters message command.
   Counts characters in a message and sends an ephemeral response.
   """
-  def count_characters(%{"data" => %{"resolved" => %{"messages" => messages}, "target_id" => message_id}}) do
+  def count_characters(%{
+        "data" => %{"resolved" => %{"messages" => messages}, "target_id" => message_id}
+      }) do
     # Get the message content from the resolved data
     message = messages[message_id]
     content = message["content"] || ""
@@ -283,7 +289,8 @@ defmodule ExampleWeb.Discord do
       |> Embed.add_field("Characters", "#{char_count}", true)
       |> Embed.add_field("Words", "#{word_count}", true)
       |> Embed.add_field("Lines", "#{line_count}", true)
-      |> Embed.color(0x5865F2) # Discord Blurple color
+      # Discord Blurple color
+      |> Embed.color(0x5865F2)
 
     # Create an ephemeral response (only visible to the command user)
     response =
@@ -312,9 +319,10 @@ defmodule ExampleWeb.Discord do
       get_color_list()
       |> Enum.filter(fn {name, hex} ->
         String.contains?(String.downcase(name), current_input) or
-        String.contains?(String.downcase(hex), current_input)
+          String.contains?(String.downcase(hex), current_input)
       end)
-      |> Enum.take(25)  # Discord limits to 25 choices
+      # Discord limits to 25 choices
+      |> Enum.take(25)
       |> Enum.map(fn {name, hex} ->
         InteractionResponse.choice("#{name} (#{hex})", name)
       end)
@@ -356,7 +364,9 @@ defmodule ExampleWeb.Discord do
     {:ok, response}
   end
 
-  def handle_component(%{"data" => %{"custom_id" => "color_select", "values" => [color]}} = _interaction) do
+  def handle_component(
+        %{"data" => %{"custom_id" => "color_select", "values" => [color]}} = _interaction
+      ) do
     {color_name, color_hex} = get_color_info(color)
 
     embed =
@@ -372,13 +382,22 @@ defmodule ExampleWeb.Discord do
     {:ok, response}
   end
 
-  def handle_component(%{"data" => %{"custom_id" => "user_select", "resolved" => %{"users" => users}, "values" => [user_id]}} = _interaction) do
+  def handle_component(
+        %{
+          "data" => %{
+            "custom_id" => "user_select",
+            "resolved" => %{"users" => users},
+            "values" => [user_id]
+          }
+        } = _interaction
+      ) do
     user = users[user_id]
 
     response =
       InteractionResponse.channel_message_with_source()
       |> InteractionResponse.content("You selected user: <@#{user_id}> (#{user["username"]})")
-      |> InteractionResponse.allowed_mentions(parse: [])  # Don't ping the user
+      # Don't ping the user
+      |> InteractionResponse.allowed_mentions(parse: [])
 
     {:ok, response}
   end
@@ -396,7 +415,9 @@ defmodule ExampleWeb.Discord do
   Handler for modal submissions.
   Processes form data submitted through modals.
   """
-  def handle_modal_submit(%{"data" => %{"custom_id" => "user_info_modal", "components" => components}}) do
+  def handle_modal_submit(%{
+        "data" => %{"custom_id" => "user_info_modal", "components" => components}
+      }) do
     # Extract values from the modal components
     values = extract_modal_values(components)
 
@@ -447,8 +468,10 @@ defmodule ExampleWeb.Discord do
     color_map = Map.new(get_color_list())
 
     case Map.get(color_map, color_value) do
-      nil -> {color_value, color_value}  # If not a named color, assume it's a hex code
-      hex -> {color_value, hex}          # If it's a named color, return the hex
+      # If not a named color, assume it's a hex code
+      nil -> {color_value, color_value}
+      # If it's a named color, return the hex
+      hex -> {color_value, hex}
     end
   end
 
@@ -456,6 +479,7 @@ defmodule ExampleWeb.Discord do
   Parses a hex color string into an integer.
   """
   def parse_hex_color("#" <> hex), do: parse_hex_color(hex)
+
   def parse_hex_color(hex) do
     {color_int, _} = Integer.parse(hex, 16)
     color_int
