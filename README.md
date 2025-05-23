@@ -26,6 +26,93 @@ def deps do
 end
 ```
 
+### Setting Up a Command Handler
+
+1. **Create a Discord module** that will handle your commands:
+
+```elixir
+defmodule YourApp.Discord do
+  use DiscordInteractions
+
+  # Always require Logger for proper error reporting
+  require Logger
+
+  # Import response helpers
+  alias DiscordInteractions.InteractionResponse
+
+  interactions do
+    # Define a simple slash command
+    application_command "hello" do
+      description("Greets the user")
+      handler(&hello/1)
+    end
+  end
+
+  # Implement your command handler
+  def hello(itx) do
+    user_id = itx["member"]["user"]["id"]
+
+    response =
+      InteractionResponse.channel_message_with_source()
+      |> InteractionResponse.content("Hello, <@#{user_id}>!")
+      |> InteractionResponse.allowed_mentions(parse: [:users])
+
+    {:ok, response}
+  end
+end
+```
+
+2. **Add the command registration to your application supervision tree**:
+
+```elixir
+# In your application.ex
+def start(_type, _args) do
+  children = [
+    # Other children...
+    YourAppWeb.Endpoint,
+    {DiscordInteractions.CommandRegistration, YourApp.Discord}
+  ]
+
+  opts = [strategy: :one_for_one, name: YourApp.Supervisor]
+  Supervisor.start_link(children, opts)
+end
+```
+
+3. **Add the Discord Interactions plug to your router**:
+
+```elixir
+# In your router.ex
+defmodule YourAppWeb.Router do
+  use YourAppWeb, :router
+
+  # Other routes...
+
+  # Route for Discord interactions
+  forward "/discord", DiscordInteractions.Plug, YourApp.Discord
+end
+```
+
+4. **Configure your endpoint** to cache the raw request body for signature verification:
+
+```elixir
+# In your endpoint.ex
+plug Plug.Parsers,
+  parsers: [:urlencoded, :multipart, :json],
+  pass: ["*/*"],
+  json_decoder: Phoenix.json_library(),
+  body_reader: {DiscordInteractions.CacheBodyReader, :read_body, []}
+```
+
+5. **Set up environment variables** in your config:
+
+```elixir
+# In your config/runtime.exs or config/config.exs
+config :discord_interactions,
+  public_key: System.get_env("DISCORD_PUBLIC_KEY"),
+  bot_token: System.get_env("DISCORD_BOT_TOKEN"),
+  application_id: System.get_env("DISCORD_APPLICATION_ID")
+```
+
 Documentation can be found at <https://hexdocs.pm/discord_interactions>.
 
 ## Development
