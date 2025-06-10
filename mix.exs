@@ -10,7 +10,8 @@ defmodule DiscordInteractions.MixProject do
       deps: deps(),
       description: description(),
       package: package(),
-      source_url: "https://github.com/profiq/discord-interactions-elixir"
+      source_url: "https://github.com/profiq/discord-interactions-elixir",
+      test_coverage: [summary: [threshold: 80]]
     ]
   end
 
