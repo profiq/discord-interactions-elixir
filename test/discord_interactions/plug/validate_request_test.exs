@@ -1,5 +1,5 @@
 defmodule DiscordInteractions.Plug.ValidateRequestTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   use Mimic
 
   import Plug.Conn
@@ -79,8 +79,18 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
     end
 
     test "returns 500 when public key is not configured", %{conn: conn, body: body} do
+      # Store the original public key config to restore it later
+      original_key = Application.get_env(:discord_interactions, :public_key)
+
       # Temporarily remove the public key config
       Application.delete_env(:discord_interactions, :public_key)
+
+      # Ensure cleanup happens even if the test fails
+      on_exit(fn ->
+        if original_key do
+          Application.put_env(:discord_interactions, :public_key, original_key)
+        end
+      end)
 
       conn =
         conn
@@ -92,6 +102,9 @@ defmodule DiscordInteractions.Plug.ValidateRequestTest do
                status: 500,
                halted: true
              } = ValidateRequest.call(conn, %{})
+
+      # Restore the public key config immediately after the test
+      Application.put_env(:discord_interactions, :public_key, original_key)
     end
 
     test "returns 500 when raw body is missing", %{conn: conn} do
