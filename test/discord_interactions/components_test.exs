@@ -586,11 +586,15 @@ defmodule DiscordInteractions.ComponentsTest do
       assert %{
                type: 7,
                custom_id: "select_mentionable",
-               disabled: true
+               disabled: true,
+               min_values: 1,
+               max_values: 1
              } =
                Components.mentionable_select(
                  custom_id: "select_mentionable",
-                 disabled: true
+                 disabled: true,
+                 min_values: 1,
+                 max_values: 1
                )
     end
 
@@ -598,11 +602,15 @@ defmodule DiscordInteractions.ComponentsTest do
       assert %{
                type: 7,
                id: 123,
-               custom_id: "select_mentionable"
+               custom_id: "select_mentionable",
+               min_values: 1,
+               max_values: 3
              } =
                Components.mentionable_select(
                  id: 123,
-                 custom_id: "select_mentionable"
+                 custom_id: "select_mentionable",
+                 min_values: 1,
+                 max_values: 3
                )
     end
   end
@@ -647,11 +655,15 @@ defmodule DiscordInteractions.ComponentsTest do
       assert %{
                type: 8,
                custom_id: "select_channel",
-               default_values: ^default_values
+               default_values: ^default_values,
+               min_values: 1,
+               max_values: 1
              } =
                Components.channel_select(
                  custom_id: "select_channel",
-                 default_values: default_values
+                 default_values: default_values,
+                 min_values: 1,
+                 max_values: 1
                )
     end
 
@@ -659,11 +671,15 @@ defmodule DiscordInteractions.ComponentsTest do
       assert %{
                type: 8,
                custom_id: "select_channel",
-               disabled: true
+               disabled: true,
+               min_values: 1,
+               max_values: 1
              } =
                Components.channel_select(
                  custom_id: "select_channel",
-                 disabled: true
+                 disabled: true,
+                 min_values: 1,
+                 max_values: 1
                )
     end
 
@@ -671,11 +687,15 @@ defmodule DiscordInteractions.ComponentsTest do
       assert %{
                type: 8,
                id: 123,
-               custom_id: "select_channel"
+               custom_id: "select_channel",
+               min_values: 1,
+               max_values: 2
              } =
                Components.channel_select(
                  id: 123,
-                 custom_id: "select_channel"
+                 custom_id: "select_channel",
+                 min_values: 1,
+                 max_values: 2
                )
     end
   end
