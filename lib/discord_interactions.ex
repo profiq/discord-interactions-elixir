@@ -1176,12 +1176,28 @@ defmodule DiscordInteractions do
               "guild_id" => guild_id
             } = itx
           ) do
-        # Handle application command
+        # Handle application command with guild_id
         case init() do
           %{guild_commands: %{{^guild_id, ^command_name} => %{handler: handler}}}
           when not is_nil(handler) ->
             handler.(itx)
 
+          %{global_commands: %{^command_name => %{handler: handler}}} when not is_nil(handler) ->
+            handler.(itx)
+
+          _ ->
+            :error
+        end
+      end
+
+      def handle(
+            %{
+              "type" => unquote(@application_command),
+              "data" => %{"name" => command_name}
+            } = itx
+          ) do
+        # Handle application command without guild_id (global commands only)
+        case init() do
           %{global_commands: %{^command_name => %{handler: handler}}} when not is_nil(handler) ->
             handler.(itx)
 
@@ -1208,12 +1224,29 @@ defmodule DiscordInteractions do
               "guild_id" => guild_id
             } = itx
           ) do
-        # Handle application command autocomplete
+        # Handle application command autocomplete with guild_id
         case init() do
           %{guild_commands: %{{^guild_id, ^command_name} => %{autocomplete_handler: handler}}}
           when not is_nil(handler) ->
             handler.(itx)
 
+          %{global_commands: %{^command_name => %{autocomplete_handler: handler}}}
+          when not is_nil(handler) ->
+            handler.(itx)
+
+          _ ->
+            :error
+        end
+      end
+
+      def handle(
+            %{
+              "type" => unquote(@application_command_autocomplete),
+              "data" => %{"name" => command_name}
+            } = itx
+          ) do
+        # Handle application command autocomplete without guild_id (global commands only)
+        case init() do
           %{global_commands: %{^command_name => %{autocomplete_handler: handler}}}
           when not is_nil(handler) ->
             handler.(itx)
@@ -1232,6 +1265,11 @@ defmodule DiscordInteractions do
           _ ->
             :error
         end
+      end
+
+      # Catch-all for unknown interaction types
+      def handle(_itx) do
+        :error
       end
     end
   end
