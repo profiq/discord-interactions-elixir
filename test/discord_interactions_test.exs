@@ -122,7 +122,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "some_guild"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Test response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Test response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles guild-specific commands" do
@@ -133,7 +134,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "test_guild"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Guild test response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Guild test response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles user context menu commands" do
@@ -143,7 +145,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "some_guild"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "User command response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "User command response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles message context menu commands" do
@@ -153,7 +156,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "some_guild"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Message command response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Message command response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles commands with multiple guilds" do
@@ -164,7 +168,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "guild1"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Multi-guild response"}}} = TestHandler.handle(interaction1)
+      assert {:ok, %{type: 4, data: %{content: "Multi-guild response"}}} =
+               TestHandler.handle(interaction1)
 
       # Test command in second guild
       interaction2 = %{
@@ -173,7 +178,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "guild2"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Multi-guild response"}}} = TestHandler.handle(interaction2)
+      assert {:ok, %{type: 4, data: %{content: "Multi-guild response"}}} =
+               TestHandler.handle(interaction2)
     end
 
     test "handles commands with options" do
@@ -183,7 +189,8 @@ defmodule DiscordInteractionsTest do
         "guild_id" => "some_guild"
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Echo response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Echo response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles autocomplete interactions" do
@@ -192,7 +199,8 @@ defmodule DiscordInteractionsTest do
         "data" => %{"name" => "autocomplete_test"}
       }
 
-      assert {:ok, %{type: 8, data: %{choices: [%{name: "test", value: "test"}]}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 8, data: %{choices: [%{name: "test", value: "test"}]}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles message components" do
@@ -201,7 +209,8 @@ defmodule DiscordInteractionsTest do
         "data" => %{"custom_id" => "test_button"}
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Component response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Component response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles modal submissions" do
@@ -210,7 +219,8 @@ defmodule DiscordInteractionsTest do
         "data" => %{"custom_id" => "test_modal"}
       }
 
-      assert {:ok, %{type: 4, data: %{content: "Modal response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Modal response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "returns :error for unknown commands" do
@@ -305,77 +315,110 @@ defmodule DiscordInteractionsTest do
 
       # Test global command
       assert %{
-        definition: %{name: "test", type: 1},
-        handler: handler,
-        guilds: []
-      } = config.global_commands["test"]
+               definition: %{name: "test", type: 1},
+               handler: handler,
+               guilds: []
+             } = config.global_commands["test"]
+
       assert is_function(handler, 1)
 
       # Test user command
       assert %{
-        definition: %{name: "User Command", type: 2},
-        handler: handler,
-        guilds: []
-      } = config.global_commands["User Command"]
+               definition: %{name: "User Command", type: 2},
+               handler: handler,
+               guilds: []
+             } = config.global_commands["User Command"]
+
       assert is_function(handler, 1)
 
       # Test message command
       assert %{
-        definition: %{name: "Message Command", type: 3},
-        handler: handler,
-        guilds: []
-      } = config.global_commands["Message Command"]
+               definition: %{name: "Message Command", type: 3},
+               handler: handler,
+               guilds: []
+             } = config.global_commands["Message Command"]
+
       assert is_function(handler, 1)
 
       # Test guild command
       assert %{
-        definition: %{name: "guild_test", type: 1},
-        handler: handler,
-        guilds: ["test_guild"]
-      } = config.guild_commands[{"test_guild", "guild_test"}]
+               definition: %{name: "guild_test", type: 1},
+               handler: handler,
+               guilds: ["test_guild"]
+             } = config.guild_commands[{"test_guild", "guild_test"}]
+
       assert is_function(handler, 1)
 
       # Test multi-guild command
       assert %{
-        definition: %{name: "multi_guild", type: 1},
-        handler: handler,
-        guilds: ["guild2", "guild1"]  # Order is reversed due to prepending
-      } = config.guild_commands[{"guild1", "multi_guild"}]
+               definition: %{name: "multi_guild", type: 1},
+               handler: handler,
+               # Order is reversed due to prepending
+               guilds: ["guild2", "guild1"]
+             } = config.guild_commands[{"guild1", "multi_guild"}]
+
       assert is_function(handler, 1)
 
       assert %{
-        definition: %{name: "multi_guild", type: 1},
-        handler: handler,
-        guilds: ["guild2", "guild1"]
-      } = config.guild_commands[{"guild2", "multi_guild"}]
+               definition: %{name: "multi_guild", type: 1},
+               handler: handler,
+               guilds: ["guild2", "guild1"]
+             } = config.guild_commands[{"guild2", "multi_guild"}]
+
       assert is_function(handler, 1)
 
       # Test command with options
       echo_command = config.global_commands["echo"]
+
       assert %{
-        definition: %{
-          name: "echo",
-          type: 1,
-          options: [
-            %{name: "message", type: 3, description: "The message to echo", required: true},
-            %{name: "count", type: 4, description: "Number of times to repeat", required: false, min_value: 1, max_value: 10},
-            %{name: "public", type: 5, description: "Whether to make the response public", required: false}
-          ]
-        }
-      } = echo_command
+               definition: %{
+                 name: "echo",
+                 type: 1,
+                 options: [
+                   %{
+                     name: "message",
+                     type: 3,
+                     description: "The message to echo",
+                     required: true
+                   },
+                   %{
+                     name: "count",
+                     type: 4,
+                     description: "Number of times to repeat",
+                     required: false,
+                     min_value: 1,
+                     max_value: 10
+                   },
+                   %{
+                     name: "public",
+                     type: 5,
+                     description: "Whether to make the response public",
+                     required: false
+                   }
+                 ]
+               }
+             } = echo_command
 
       # Test autocomplete command
       autocomplete_command = config.global_commands["autocomplete_test"]
+
       assert %{
-        definition: %{
-          name: "autocomplete_test",
-          type: 1,
-          options: [
-            %{name: "query", type: 3, description: "Search query", required: true, autocomplete: true}
-          ]
-        },
-        autocomplete_handler: handle_autocomplete
-      } = autocomplete_command
+               definition: %{
+                 name: "autocomplete_test",
+                 type: 1,
+                 options: [
+                   %{
+                     name: "query",
+                     type: 3,
+                     description: "Search query",
+                     required: true,
+                     autocomplete: true
+                   }
+                 ]
+               },
+               autocomplete_handler: handle_autocomplete
+             } = autocomplete_command
+
       assert is_function(handle_autocomplete, 1)
 
       # Test handlers
@@ -419,7 +462,12 @@ defmodule DiscordInteractionsTest do
 
       expected_options = [
         %{name: "sub_command", type: 1, description: "A sub command", required: false},
-        %{name: "sub_command_group", type: 2, description: "A sub command group", required: false},
+        %{
+          name: "sub_command_group",
+          type: 2,
+          description: "A sub command group",
+          required: false
+        },
         %{name: "string_opt", type: 3, description: "String option", required: false},
         %{name: "integer_opt", type: 4, description: "Integer option", required: false},
         %{name: "boolean_opt", type: 5, description: "Boolean option", required: false},
@@ -560,7 +608,8 @@ defmodule DiscordInteractionsTest do
       }
 
       # This should still work for global commands
-      assert {:ok, %{type: 4, data: %{content: "Test response"}}} = TestHandler.handle(interaction)
+      assert {:ok, %{type: 4, data: %{content: "Test response"}}} =
+               TestHandler.handle(interaction)
     end
 
     test "handles empty interactions block" do
@@ -596,7 +645,8 @@ defmodule DiscordInteractionsTest do
 
       config = NoDescriptionHandler.init()
       command = config.global_commands["no_desc"]
-      assert command.definition.type == 2  # User command type
+      # User command type
+      assert command.definition.type == 2
       refute Map.has_key?(command.definition, :description)
     end
 
@@ -628,7 +678,8 @@ defmodule DiscordInteractionsTest do
         type: 7,
         description: "Channel option",
         required: false,
-        channel_types: [0, 2, 4]  # Converted from atoms to integers
+        # Converted from atoms to integers
+        channel_types: [0, 2, 4]
       }
 
       assert [^expected_option] = command.definition.options

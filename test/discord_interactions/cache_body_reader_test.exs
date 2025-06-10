@@ -14,7 +14,7 @@ defmodule DiscordInteractions.CacheBodyReaderTest do
   describe "read_body/2" do
     test "reads body and caches it in assigns", %{conn: conn} do
       body = "test body content"
-      
+
       expect(Plug.Conn, :read_body, fn ^conn, [] ->
         {:ok, body, conn}
       end)
@@ -26,9 +26,9 @@ defmodule DiscordInteractions.CacheBodyReaderTest do
     test "appends to existing cached body", %{conn: conn} do
       existing_body = ["existing content"]
       new_body = "new content"
-      
+
       conn = assign(conn, :raw_body, existing_body)
-      
+
       expect(Plug.Conn, :read_body, fn ^conn, [] ->
         {:ok, new_body, conn}
       end)
@@ -39,7 +39,7 @@ defmodule DiscordInteractions.CacheBodyReaderTest do
 
     test "handles empty existing raw_body", %{conn: conn} do
       body = "test body"
-      
+
       expect(Plug.Conn, :read_body, fn ^conn, [] ->
         {:ok, body, conn}
       end)
@@ -51,7 +51,7 @@ defmodule DiscordInteractions.CacheBodyReaderTest do
     test "passes through read_body options", %{conn: conn} do
       body = "test body"
       opts = [length: 1000, read_length: 100]
-      
+
       expect(Plug.Conn, :read_body, fn ^conn, ^opts ->
         {:ok, body, conn}
       end)
@@ -73,7 +73,7 @@ defmodule DiscordInteractions.CacheBodyReaderTest do
 
     test "handles error response from read_body", %{conn: conn} do
       error = :timeout
-      
+
       expect(Plug.Conn, :read_body, fn ^conn, [] ->
         {:error, error}
       end)

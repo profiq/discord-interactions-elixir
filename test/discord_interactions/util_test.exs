@@ -11,7 +11,7 @@ defmodule DiscordInteractions.UtilTest do
   describe "error/2" do
     test "sends error response with correct status code", %{conn: conn} do
       result = Util.error(conn, :bad_request)
-      
+
       assert result.status == 400
       assert result.halted == true
       assert result.resp_body == "Bad Request"
@@ -19,7 +19,7 @@ defmodule DiscordInteractions.UtilTest do
 
     test "handles unauthorized error", %{conn: conn} do
       result = Util.error(conn, :unauthorized)
-      
+
       assert result.status == 401
       assert result.halted == true
       assert result.resp_body == "Unauthorized"
@@ -27,7 +27,7 @@ defmodule DiscordInteractions.UtilTest do
 
     test "handles internal server error", %{conn: conn} do
       result = Util.error(conn, :internal_server_error)
-      
+
       assert result.status == 500
       assert result.halted == true
       assert result.resp_body == "Internal Server Error"
@@ -35,7 +35,7 @@ defmodule DiscordInteractions.UtilTest do
 
     test "handles method not allowed error", %{conn: conn} do
       result = Util.error(conn, :method_not_allowed)
-      
+
       assert result.status == 405
       assert result.halted == true
       assert result.resp_body == "Method Not Allowed"
