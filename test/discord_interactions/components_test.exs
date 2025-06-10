@@ -136,6 +136,36 @@ defmodule DiscordInteractions.ComponentsTest do
                  disabled: true
                )
     end
+
+    test "creates a button with id" do
+      assert %{
+               type: 2,
+               id: 123,
+               style: 1,
+               label: "Click Me",
+               custom_id: "click_button"
+             } =
+               Components.button(
+                 id: 123,
+                 style: :primary,
+                 label: "Click Me",
+                 custom_id: "click_button"
+               )
+    end
+
+    test "defaults to primary style for unknown style" do
+      assert %{
+               type: 2,
+               style: 1,
+               label: "Click Me",
+               custom_id: "click_button"
+             } =
+               Components.button(
+                 style: :unknown_style,
+                 label: "Click Me",
+                 custom_id: "click_button"
+               )
+    end
   end
 
   describe "emoji/1" do
@@ -229,6 +259,26 @@ defmodule DiscordInteractions.ComponentsTest do
                  disabled: true
                )
     end
+
+    test "creates a string select menu with id" do
+      options = [%{label: "Option 1", value: "opt1"}]
+
+      assert %{
+               type: 3,
+               id: 123,
+               custom_id: "select_option",
+               options: ^options,
+               min_values: 1,
+               max_values: 1
+             } =
+               Components.string_select(
+                 id: 123,
+                 custom_id: "select_option",
+                 options: options,
+                 min_values: 1,
+                 max_values: 1
+               )
+    end
   end
 
   describe "select_option/1" do
@@ -253,6 +303,53 @@ defmodule DiscordInteractions.ComponentsTest do
                  label: "Option 1",
                  value: "opt1",
                  description: "This is option 1"
+               )
+    end
+
+    test "creates a select option with emoji" do
+      emoji = %{name: "✅"}
+
+      assert %{
+               label: "Option 1",
+               value: "opt1",
+               emoji: ^emoji
+             } =
+               Components.select_option(
+                 label: "Option 1",
+                 value: "opt1",
+                 emoji: emoji
+               )
+    end
+
+    test "creates a default select option" do
+      assert %{
+               label: "Option 1",
+               value: "opt1",
+               default: true
+             } =
+               Components.select_option(
+                 label: "Option 1",
+                 value: "opt1",
+                 default: true
+               )
+    end
+
+    test "creates a select option with all properties" do
+      emoji = %{name: "✅"}
+
+      assert %{
+               label: "Option 1",
+               value: "opt1",
+               description: "This is option 1",
+               emoji: ^emoji,
+               default: true
+             } =
+               Components.select_option(
+                 label: "Option 1",
+                 value: "opt1",
+                 description: "This is option 1",
+                 emoji: emoji,
+                 default: true
                )
     end
   end
@@ -419,6 +516,32 @@ defmodule DiscordInteractions.ComponentsTest do
                  disabled: true
                )
     end
+
+    test "creates a role select menu with min/max values" do
+      assert %{
+               type: 6,
+               custom_id: "select_role",
+               min_values: 1,
+               max_values: 3
+             } =
+               Components.role_select(
+                 custom_id: "select_role",
+                 min_values: 1,
+                 max_values: 3
+               )
+    end
+
+    test "creates a role select menu with id" do
+      assert %{
+               type: 6,
+               id: 123,
+               custom_id: "select_role"
+             } =
+               Components.role_select(
+                 id: 123,
+                 custom_id: "select_role"
+               )
+    end
   end
 
   describe "mentionable_select/1" do
@@ -458,6 +581,30 @@ defmodule DiscordInteractions.ComponentsTest do
                  max_values: 5
                )
     end
+
+    test "creates a disabled mentionable select menu" do
+      assert %{
+               type: 7,
+               custom_id: "select_mentionable",
+               disabled: true
+             } =
+               Components.mentionable_select(
+                 custom_id: "select_mentionable",
+                 disabled: true
+               )
+    end
+
+    test "creates a mentionable select menu with id" do
+      assert %{
+               type: 7,
+               id: 123,
+               custom_id: "select_mentionable"
+             } =
+               Components.mentionable_select(
+                 id: 123,
+                 custom_id: "select_mentionable"
+               )
+    end
   end
 
   describe "channel_select/1" do
@@ -491,6 +638,44 @@ defmodule DiscordInteractions.ComponentsTest do
                  channel_types: [:guild_text, :guild_voice],
                  min_values: 1,
                  max_values: 1
+               )
+    end
+
+    test "creates a channel select menu with default values" do
+      default_values = [%{id: "123456789", type: "channel"}]
+
+      assert %{
+               type: 8,
+               custom_id: "select_channel",
+               default_values: ^default_values
+             } =
+               Components.channel_select(
+                 custom_id: "select_channel",
+                 default_values: default_values
+               )
+    end
+
+    test "creates a disabled channel select menu" do
+      assert %{
+               type: 8,
+               custom_id: "select_channel",
+               disabled: true
+             } =
+               Components.channel_select(
+                 custom_id: "select_channel",
+                 disabled: true
+               )
+    end
+
+    test "creates a channel select menu with id" do
+      assert %{
+               type: 8,
+               id: 123,
+               custom_id: "select_channel"
+             } =
+               Components.channel_select(
+                 id: 123,
+                 custom_id: "select_channel"
                )
     end
   end
@@ -581,6 +766,27 @@ defmodule DiscordInteractions.ComponentsTest do
                  spoiler: true
                )
     end
+
+    test "creates a thumbnail with media object" do
+      media_obj = %{url: "https://example.com/image.png", width: 100, height: 100}
+
+      assert %{
+               type: 11,
+               media: ^media_obj
+             } = Components.thumbnail(media: media_obj)
+    end
+
+    test "creates a thumbnail with id" do
+      assert %{
+               type: 11,
+               id: "thumb_1",
+               media: %{url: "https://example.com/image.png"}
+             } =
+               Components.thumbnail(
+                 id: "thumb_1",
+                 media: "https://example.com/image.png"
+               )
+    end
   end
 
   describe "container/1" do
@@ -620,6 +826,194 @@ defmodule DiscordInteractions.ComponentsTest do
                Components.container(
                  components: components,
                  accent_color: "#FF0000"
+               )
+    end
+
+    test "creates a container with accent color as hex string without #" do
+      components = [%{type: 9, components: [], accessory: %{}}]
+
+      assert %{
+               type: 17,
+               components: ^components,
+               # 0xFF0000
+               accent_color: 16_711_680
+             } =
+               Components.container(
+                 components: components,
+                 accent_color: "FF0000"
+               )
+    end
+
+    test "creates a container with id" do
+      components = [%{type: 9, components: [], accessory: %{}}]
+
+      assert %{
+               type: 17,
+               id: "container_1",
+               components: ^components
+             } =
+               Components.container(
+                 id: "container_1",
+                 components: components
+               )
+    end
+
+    test "creates a container marked as spoiler" do
+      components = [%{type: 9, components: [], accessory: %{}}]
+
+      assert %{
+               type: 17,
+               components: ^components,
+               spoiler: true
+             } =
+               Components.container(
+                 components: components,
+                 spoiler: true
+               )
+    end
+  end
+
+  describe "media_gallery/1" do
+    test "creates a media gallery with URL strings" do
+      items = [
+        "https://example.com/image1.png",
+        "https://example.com/image2.png"
+      ]
+
+      expected_items = [
+        %{url: "https://example.com/image1.png"},
+        %{url: "https://example.com/image2.png"}
+      ]
+
+      assert %{
+               type: 12,
+               items: ^expected_items
+             } = Components.media_gallery(items: items)
+    end
+
+    test "creates a media gallery with media objects" do
+      items = [
+        %{url: "https://example.com/image1.png", description: "Image 1"},
+        %{url: "https://example.com/image2.png", description: "Image 2"}
+      ]
+
+      assert %{
+               type: 12,
+               items: ^items
+             } = Components.media_gallery(items: items)
+    end
+
+    test "creates a media gallery with mixed items" do
+      items = [
+        "https://example.com/image1.png",
+        %{url: "https://example.com/image2.png", description: "Image 2"}
+      ]
+
+      expected_items = [
+        %{url: "https://example.com/image1.png"},
+        %{url: "https://example.com/image2.png", description: "Image 2"}
+      ]
+
+      assert %{
+               type: 12,
+               items: ^expected_items
+             } = Components.media_gallery(items: items)
+    end
+
+    test "creates a media gallery with id" do
+      items = ["https://example.com/image1.png"]
+
+      assert %{
+               type: 12,
+               id: "my_gallery",
+               items: [%{url: "https://example.com/image1.png"}]
+             } =
+               Components.media_gallery(
+                 id: "my_gallery",
+                 items: items
+               )
+    end
+  end
+
+  describe "file/1" do
+    test "creates a file component with URL string" do
+      assert %{
+               type: 13,
+               file: %{url: "https://example.com/document.pdf"}
+             } = Components.file(file: "https://example.com/document.pdf")
+    end
+
+    test "creates a file component with file object" do
+      file_obj = %{url: "https://example.com/document.pdf", filename: "document.pdf"}
+
+      assert %{
+               type: 13,
+               file: ^file_obj
+             } = Components.file(file: file_obj)
+    end
+
+    test "creates a file component with id" do
+      assert %{
+               type: 13,
+               id: "file_1",
+               file: %{url: "https://example.com/document.pdf"}
+             } =
+               Components.file(
+                 id: "file_1",
+                 file: "https://example.com/document.pdf"
+               )
+    end
+
+    test "creates a file component marked as spoiler" do
+      assert %{
+               type: 13,
+               file: %{url: "https://example.com/document.pdf"},
+               spoiler: true
+             } =
+               Components.file(
+                 file: "https://example.com/document.pdf",
+                 spoiler: true
+               )
+    end
+  end
+
+  describe "separator/1" do
+    test "creates a basic separator" do
+      assert %{type: 14} = Components.separator([])
+    end
+
+    test "creates a separator with divider" do
+      assert %{
+               type: 14,
+               divider: true
+             } = Components.separator(divider: true)
+    end
+
+    test "creates a separator with spacing" do
+      assert %{
+               type: 14,
+               spacing: "medium"
+             } = Components.separator(spacing: "medium")
+    end
+
+    test "creates a separator with id" do
+      assert %{
+               type: 14,
+               id: "sep_1"
+             } = Components.separator(id: "sep_1")
+    end
+
+    test "creates a separator with all options" do
+      assert %{
+               type: 14,
+               id: "sep_1",
+               divider: true,
+               spacing: "large"
+             } =
+               Components.separator(
+                 id: "sep_1",
+                 divider: true,
+                 spacing: "large"
                )
     end
   end
