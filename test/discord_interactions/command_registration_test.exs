@@ -1,12 +1,9 @@
 defmodule DiscordInteractions.CommandRegistrationTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   use Mimic
 
   alias DiscordInteractions.API
   alias DiscordInteractions.CommandRegistration
-
-  # Mock the API module for testing
-  Mimic.copy(DiscordInteractions.API)
 
   defmodule TestHandler do
     def init do
@@ -61,6 +58,9 @@ defmodule DiscordInteractions.CommandRegistrationTest do
   end
 
   setup do
+    # Mock the API module for testing - moved here to avoid global interference
+    Mimic.copy(DiscordInteractions.API)
+
     # Set up environment variables for testing
     Application.put_env(:discord_interactions, :bot_token, "test_token")
     Application.put_env(:discord_interactions, :application_id, "test_app_id")
@@ -81,6 +81,7 @@ defmodule DiscordInteractions.CommandRegistrationTest do
   end
 
   describe "register_commands/1" do
+    @tag :command_registration
     test "successfully registers both global and guild commands", %{
       client: client,
       global_commands: global_commands,
@@ -108,6 +109,7 @@ defmodule DiscordInteractions.CommandRegistrationTest do
       assert :ok = CommandRegistration.register_commands(TestHandler)
     end
 
+    @tag :command_registration
     test "handles empty global commands", %{
       client: client,
       guild_commands: guild_commands
@@ -126,6 +128,7 @@ defmodule DiscordInteractions.CommandRegistrationTest do
       assert :ok = CommandRegistration.register_commands(NoGlobalHandler)
     end
 
+    @tag :command_registration
     test "handles empty guild commands", %{
       client: client,
       global_commands: global_commands
@@ -143,6 +146,7 @@ defmodule DiscordInteractions.CommandRegistrationTest do
       assert :ok = CommandRegistration.register_commands(NoGuildHandler)
     end
 
+    @tag :command_registration
     test "raises error when global command registration fails", %{
       client: client
     } do
@@ -160,6 +164,7 @@ defmodule DiscordInteractions.CommandRegistrationTest do
       end
     end
 
+    @tag :command_registration
     test "raises error when guild command registration fails", %{
       client: client,
       global_commands: global_commands
@@ -188,24 +193,52 @@ defmodule DiscordInteractions.CommandRegistrationTest do
       end
     end
 
+    @tag :command_registration
     test "raises error when bot token is not configured" do
+      # Store the original bot token config to restore it later
+      original_token = Application.get_env(:discord_interactions, :bot_token)
+
       # Remove the bot token config
       Application.delete_env(:discord_interactions, :bot_token)
+
+      # Ensure cleanup happens even if the test fails
+      on_exit(fn ->
+        if original_token do
+          Application.put_env(:discord_interactions, :bot_token, original_token)
+        end
+      end)
 
       # Call the function under test and expect it to raise
       assert_raise RuntimeError, "Discord bot token is not configured", fn ->
         CommandRegistration.register_commands(TestHandler)
       end
+
+      # Restore the bot token config immediately after the test
+      Application.put_env(:discord_interactions, :bot_token, original_token)
     end
 
+    @tag :command_registration
     test "raises error when application ID is not configured" do
+      # Store the original application ID config to restore it later
+      original_app_id = Application.get_env(:discord_interactions, :application_id)
+
       # Remove the application ID config
       Application.delete_env(:discord_interactions, :application_id)
+
+      # Ensure cleanup happens even if the test fails
+      on_exit(fn ->
+        if original_app_id do
+          Application.put_env(:discord_interactions, :application_id, original_app_id)
+        end
+      end)
 
       # Call the function under test and expect it to raise
       assert_raise RuntimeError, "Discord application id is not configured", fn ->
         CommandRegistration.register_commands(TestHandler)
       end
+
+      # Restore the application ID config immediately after the test
+      Application.put_env(:discord_interactions, :application_id, original_app_id)
     end
   end
 end
