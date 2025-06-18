@@ -10,7 +10,12 @@ defmodule DiscordInteractions.MixProject do
       deps: deps(),
       description: description(),
       package: package(),
-      source_url: "https://github.com/profiq/discord-interactions-elixir"
+      source_url: "https://github.com/profiq/discord-interactions-elixir",
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.github": :test,
+      ]
     ]
   end
 
@@ -44,7 +49,8 @@ defmodule DiscordInteractions.MixProject do
       {:tesla, "~> 1.14"},
       {:mimic, "~> 1.7", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.31", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.18", only: :test}
     ]
   end
 end
